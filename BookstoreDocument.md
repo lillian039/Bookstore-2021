@@ -6,7 +6,27 @@
 
 partner：郭一锦 FlowerInSpring
 
-当前版本：1.0
+当前版本：1.1
+
+修改说明：
+
+1.修改数据存储方式与使用的文件个数 
+
+2.修改部分命名格式 
+
+3.添加具体登录栈说明 
+
+4.修改错别字、错误翻译、错误专业名词
+
+5.将意义不明的MemoryRiver改名为FileData文件数据结构类接口
+
+6.去掉变长数据类型
+
+7.继承std::exception类
+
+8.修改node结构 新增DataIndex结构
+
+
 
 ### 一、程序功能概述
 
@@ -50,6 +70,8 @@ partner：郭一锦 FlowerInSpring
 
 ### 二、主体逻辑说明
 
+1.头文件说明
+
 （1）main：不断获取输入的指令
 
 （2）parser.hpp：解析语法
@@ -58,11 +80,13 @@ partner：郭一锦 FlowerInSpring
 
 （4）account.hpp books.hpp diary.hpp：定义账户系统、图书系统、日志系统类，实现类的功能
 
-（5）MemoryRiver.hpp：用文件存储不同类的数据
+（5）FileData.hpp：用文件存储不同类的数据
 
-（6）BlockLink.hpp：利用块状链表实现文件中数据位置的分块存储
+（6）BlockList.hpp：利用块状链表实现文件中数据位置的分块存储
 
 （7）error.hpp：捕获并处理各种异常
+
+2.登录栈说明：用一个文件记录登录中的所有账号，新登录的账号放在文件尾，从文件尾读取当前为登录的状态的账号。
 
 ### 三、各个类的接口及成员说明
 
@@ -72,24 +96,24 @@ account类：每一个账户均实时存入 account.file 并更新accountBlock.f
 class Account {
 private:
     int priority;
-    char user_id[30];
+    char userId[30];
     char password[30];
-    char user_name[30];
+    char userName[30];
 
 public:
     Account() = default;
     //注册{0}
-    void Register(const char* &_user_id, const char* &_password, const char* &_user_name);
+    void Register(const char* _user_id, const char* _password, const char* _user_name);
     //登录{0}
-    void su(const char* &_user_id, const std::string &_password);
+    void su(const char* _user_id, const std::string _password);
     //修改密码{1}
     void passwd(const char* old_password,const char* new_password);
     //登出{1}
     void logout();
     //创建用户{3}
-    void createAccount(const char* &_user_id, const char*&_password, const int priority, const char*&_user_name);
+    void createAccount(const char* _user_id, const char*_password, const int priority, const char*_user_name);
     //删除用户{7}
-    void deleteAccount(const char* &_user_id);
+    void deleteAccount(const char* _user_id);
 };
 ```
 
@@ -100,23 +124,23 @@ class Books {
 private:
     char ISBN[20];
     char bookName[60];
-    char Author[60];
-    vector <string> keyword;//每个关键词占长度占60
+    char author[60];
+    char keyword[60];//记录整段keyword
     int quantity;
     double price;
-    double TotalCost = 0;
+    double totalCost = 0;//销售总金额
 public:
     Books() = default;
     //以ISBN字典升序依次输出满足要求的图书信息{1}
-    void show(char* &cmd);
+    void show(char* cmd);
     //购买指定数量的图书{1}
-    void buy(const char* &_ISBN, const int _quantity);
+    void buy(const char* _ISBN, const int _quantity);
 	//以当前账户图书选中{3}
-    void select(const char* &_ISBN);
+    void select(const char* _ISBN);
 	//修改图书信息{3}
-    void modify(char* &cmd);
+    void modify(char* cmd);
 	//图书进货
-    void import(const char* &_ISBN, const int _total_cost);
+    void import(const char* _ISBN, const int _total_cost);
 
 };
 ```
@@ -137,6 +161,8 @@ public:
 
 用OperaRecord.file记录每次员工不同的操作记录 用OperaRecordIndex.file记录
 
+对日志生成的格式 根据bonus需要自行设计，大致包含每笔操作，操作与金额等等
+
 ```c++
 class OperaRecord {
 private:
@@ -150,20 +176,20 @@ public:
 };
 ```
 
-MemoryRiver类：存储每个类的不同类型不同的成员均开一个文件，存储该成员的所有数据
+FileData类：存储每个类的不同类型不同的成员均开一个文件，存储该成员的所有数据
 
 ```c++
-template<class T>//存储类型为T的数据
-class MemoryRiver {
+template<class T>//文件数据结构类接口 T可为Books SumIncome Account Books OperaRecord中任意一个
+class FileData {
 private:
     fstream file;
-    string file_name;
+    string fileName;
     int sizeofT = sizeof(T);//每个数据的长度
     int sum=0;//当前最大的坐标
     vector<int>emptySpace//当前空闲坐标
 public:
-    MemoryRiver() = default;
-    MemoryRiver(const string &file_name) : file_name(file_name) {};
+    FileData() = default;
+    FileData(const string &fileName_) : fileName(fileName_) {};
     //初始化该文件
     void initialise(string FN);
     //获得该数据的位置（依靠index文件类）
@@ -178,16 +204,20 @@ public:
     T readInfo(const int index){};
 ```
 
-BlockLink类：两个文件 一个文件记录块的范围与另一个文件该块的起始地址 另一个文件记录该范围内按字典序排列的数据的地址
+BlockList.hpp：两个文件 一个文件记录块的范围与另一个文件该块的起始地址 另一个文件记录该范围内按字典序排列的数据的地址
 
 ```c++
 struct node {
-    char *head[30];
-    char *rear[30];//首尾的user_id，按id字典序大小排好
+    char head[30];
+    char rear[30];//首尾的user_id，按id字典序大小排好
     int size;//块的大小
-    int indexHead;//首为坐标集合的坐标值
-    int len=sizeof(char)*60+ sizeof(int)*3;//该语句的长度
-    vector <char*>eachPlace;
+    int indexHead;//首位坐标集合的坐标值
+};
+```
+
+```c++
+struct DataIndex{
+    char index[160* sizeof(int)];//预留块状链表每块存储的所有数据的所有地址的空间
 };
 ```
 
@@ -196,6 +226,9 @@ class Index {
 private:
     node index;
 public:
+    //构造函数 创建两个文件 一个文件用于记录块的范围即另一个文件该块的起始位子 另一个文件用于记录块中按顺序排好的数据的地址
+    //每个块初始大小为160个地址
+    Index(){}
     int findIndex(const std::string &id) {}//找到下标
     //合并块
     void Merge(){}
@@ -218,12 +251,12 @@ Parser类：拆分指令 解析语法 返回不同的执行类
 
 ```c++
 class parser{
-private:vector<string>words;
+private:vector<string>words;//将一行语句拆分成不同的单词
 public:
     parser()=default;
     ~parser();
     void separateCmd(string &cmd);
-    statement* parserWord(){return new statement();};
+    statement* parserWord(){return new statement();};//执行不同的语法
 };
 ```
 
@@ -233,7 +266,7 @@ statement类：执行指令
 class Statement{
 public:Statement();
     virtual ~Statement();
-    virtual void execute(string &cmd);
+    virtual void execute(string &cmd);//每个派生类中均需要单独实现execute函数，功能用当前priority区分
 };
 class Quit:public Statement{};
 class Exit:public Statement{};
@@ -257,8 +290,10 @@ class log:public Statement{};
 
 error类：抛出异常
 
+实现者根据可能会发生的异常，进行basic异常类的派生实现
+
 ```c++
-class BasicException {
+class BasicException: public std::exception {
 protected:
     const string message;
 public:
@@ -274,17 +309,13 @@ public:
 
 **■ class account：**
 
-索引目录文件、索引文件、主题信息：priority，user_id，password，user_name 每个各三个文件
+索引目录文件、索引文件、主体信息共三个文件
 
-登陆状态记录：一个文件，记录登陆中的账号
+登录战状态记录：一个文件，记录登录中的账号
 
 **■ class books：**
 
-索引目录文件、索引文件、主题信息：priority，user_id，password，user_name 每个各三个文件
-
- ISBN，bookName，Author，quantity，price，TotalCost 每个各三个文件
-
-keyword用一个keyword对应地址的文件与一个查找keyword的索引实现
+索引目录文件、索引文件、主题信息共三个文件
 
 **■ class diary：**
 
@@ -292,7 +323,7 @@ SumIncome：由一个文件实现，线性存储每笔交易额
 
 OperaRecord：由一个文件实现，记录店员id与操作记录
 
-#### **（2）分块链表说明：**
+#### **（2）块状链表说明：**
 
 ■ 每次修改某值，将数据加到空位置中，若无空位置，则加到文件尾部，将地址index添加到某区块中去，需要重新刷新该区块的index，以字典序排好
 
