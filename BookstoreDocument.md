@@ -6,25 +6,31 @@
 
 partner：郭一锦 FlowerInSpring
 
-当前版本：1.1
+当前版本：1.2
 
-修改说明：
+注意，该版本为执行者提出的修改意愿，尊重开发者意愿，该版本的最终形式以开发者提供的开发文档为准。
 
-1.修改数据存储方式与使用的文件个数 
 
-2.修改部分命名格式 
 
-3.添加具体登录栈说明 
+修改意愿说明：
 
-4.修改错别字、错误翻译、错误专业名词
+1.账户系统和图书系统类中的私有变量均封装成结构体
 
-5.将意义不明的MemoryRiver改名为FileData文件数据结构类接口
+2.删除了blockList.hpp文件，并大面积修改FileData文件
 
-6.去掉变长数据类型
+3.parser类重写，将其转变为只实现解析输入命令行，生成执行类的类，将其解析后生成的单词储存到Statement及其派生类中。
 
-7.继承std::exception类
+4.修改了Statement基类中的共有成员(一个vector型容器)
 
-8.修改node结构 新增DataIndex结构
+5.异常类中，重写what函数时，返回类型由string修改为char*（与exception类一致）
+
+6.文件命名大小写略有修改
+
+7.所有给出的代码中完善名字空间std
+
+8.几个无关实现，可以忽略的代码格式的修改，如换行空行问题
+
+3.几个无关实现，可以忽略的小错误
 
 
 
@@ -72,35 +78,41 @@ partner：郭一锦 FlowerInSpring
 
 1.头文件说明
 
-（1）main：不断获取输入的指令
+（1）main.cpp：不断获取输入的指令
 
 （2）parser.hpp：解析语法
 
-（3）Statement.hpp：处理解析后的语法
+（3）statement.hpp：处理解析后的语法
 
 （4）account.hpp books.hpp diary.hpp：定义账户系统、图书系统、日志系统类，实现类的功能
 
 （5）FileData.hpp：用文件存储不同类的数据
 
-（6）BlockList.hpp：利用块状链表实现文件中数据位置的分块存储
-
-（7）error.hpp：捕获并处理各种异常
+（6）error.hpp：捕获并处理各种异常
 
 2.登录栈说明：用一个文件记录登录中的所有账号，新登录的账号放在文件尾，从文件尾读取当前为登录的状态的账号。
+
+使用栈
 
 ### 三、各个类的接口及成员说明
 
 account类：每一个账户均实时存入 account.file 并更新accountBlock.file与accountIndex.file
 
 ```c++
-class Account {
-private:
+struct AccountInf {
     int priority;
     char userId[30];
     char password[30];
     char userName[30];
+};
+
+class Account {
+private:
+
+    AccountInf account;
 
 public:
+
     Account() = default;
     //注册{0}
     void Register(const char* _user_id, const char* _password, const char* _user_name);
@@ -120,8 +132,7 @@ public:
 books类：每一个账户均实时存入 books.file 并更新booksBlock.file与booksIndex.file
 
 ```c++
-class Books {
-private:
+struct BooksInf {
     char ISBN[20];
     char bookName[60];
     char author[60];
@@ -129,17 +140,22 @@ private:
     int quantity;
     double price;
     double totalCost = 0;//销售总金额
+};
+
+class Books {
+private:
+    BooksInf books;
 public:
     Books() = default;
     //以ISBN字典升序依次输出满足要求的图书信息{1}
     void show(char* cmd);
     //购买指定数量的图书{1}
     void buy(const char* _ISBN, const int _quantity);
-	//以当前账户图书选中{3}
+    //以当前账户图书选中{3}
     void select(const char* _ISBN);
-	//修改图书信息{3}
+    //修改图书信息{3}
     void modify(char* cmd);
-	//图书进货
+    //图书进货
     void import(const char* _ISBN, const int _total_cost);
 
 };
@@ -179,71 +195,44 @@ public:
 FileData类：存储每个类的不同类型不同的成员均开一个文件，存储该成员的所有数据
 
 ```c++
-template<class T>//文件数据结构类接口 T可为Books SumIncome Account Books OperaRecord中任意一个
+template<class T>//文件数据结构类接口 T可为Books SumIncome Account OperaRecord中任意一个
 class FileData {
+    
 private:
-    fstream file;
-    string fileName;
+    
+    struct Node {
+        int num;
+        int next;
+        T array[MAXSIZE];
+    };
+    int head = -1;//用于记录头节点在文件中的位置
+    std::fstream file;
+    std::string fileName;
     int sizeofT = sizeof(T);//每个数据的长度
-    int sum=0;//当前最大的坐标
-    vector<int>emptySpace//当前空闲坐标
+    int sizeofNod = sizeof(Node);
+    
 public:
     FileData() = default;
-    FileData(const string &fileName_) : fileName(fileName_) {};
+    FileData(const std::string &fileName_) : fileName(fileName_) {};
     //初始化该文件
-    void initialise(string FN);
+    void initialise(std::string FN);
     //获得该数据的位置（依靠index文件类）
     int getIndex(const T info);
     //删除某数据
-    void deleteInfo(const T info);
+    void deleteInfo(std::string index);
     //修改某数据
-    void modifyInfo(const T info);
+    void modifyInfo(std::string index);
     //添加某数据
     void addInfo(const T info);
     //返回某位置的数据
-    T readInfo(const int index){};
-```
+    T readInfo(const int index);
 
-BlockList.hpp：两个文件 一个文件记录块的范围与另一个文件该块的起始地址 另一个文件记录该范围内按字典序排列的数据的地址
-
-```c++
-struct node {
-    char head[30];
-    char rear[30];//首尾的user_id，按id字典序大小排好
-    int size;//块的大小
-    int indexHead;//首位坐标集合的坐标值
-};
-```
-
-```c++
-struct DataIndex{
-    char index[160* sizeof(int)];//预留块状链表每块存储的所有数据的所有地址的空间
-};
-```
-
-```c++
-class Index {
-private:
-    node index;
-public:
-    //构造函数 创建两个文件 一个文件用于记录块的范围即另一个文件该块的起始位子 另一个文件用于记录块中按顺序排好的数据的地址
-    //每个块初始大小为160个地址
-    Index(){}
-    int findIndex(const std::string &id) {}//找到下标
     //合并块
-    void Merge(){}
-    //判断是否需要合并块
-    void ifMerge() {}
+    void Merge();
     //分块
-    void Split() {}
-    //判断是否需要分块
-    void ifSplit() {}
-    //添加某条索引
-    void addIndex(){}
-    //删除某条索引
-    void deleteIndex(){}
+    void Split();
     //删除某个块
-    void deleteBlock(){}
+    void deleteBlock();
 };
 ```
 
@@ -251,12 +240,18 @@ Parser类：拆分指令 解析语法 返回不同的执行类
 
 ```c++
 class parser{
-private:vector<string>words;//将一行语句拆分成不同的单词
+private:
+
+    void separateCmd(std::string &cmd);
+
 public:
+
     parser()=default;
+
     ~parser();
-    void separateCmd(string &cmd);
-    statement* parserWord(){return new statement();};//执行不同的语法
+
+    Statement parserWord(std::string &cmd);//生成所执行的语法类型
+
 };
 ```
 
@@ -265,8 +260,10 @@ statement类：执行指令
 ```c++
 class Statement{
 public:Statement();
+   std::vector<std::string> words;//储存每句语法被拆解出的单词
+    Statement();
     virtual ~Statement();
-    virtual void execute(string &cmd);//每个派生类中均需要单独实现execute函数，功能用当前priority区分
+    virtual void execute();//每个派生类中均需要单独实现execute函数，功能用当前priority区分
 };
 class Quit:public Statement{};
 class Exit:public Statement{};
@@ -298,8 +295,8 @@ protected:
     const string message;
 public:
     //错误信息初始化
-    explicit BasicException(const string _message) : message(_message) {};
-    virtual const string what() const;
+    explicit BasicException(const std::string _message) : message(_message) {};
+    virtual const char* what() const;
 };
 ```
 
@@ -342,3 +339,4 @@ OperaRecord：由一个文件实现，记录店员id与操作记录
 （3）实现过程中，在合理范围内可以自行增加全局变量、全局函数、类的私有成员等，实现功能后与开发者统一说明即可。
 
 （4）执行方若有任何疑问或质疑可随时提出。
+
