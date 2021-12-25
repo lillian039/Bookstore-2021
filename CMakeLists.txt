@@ -3,4 +3,5 @@ project(Bookstore)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(Bookstore main.cpp parser.hpp statement.hpp database.hpp error.hpp)
+add_executable(Bookstore main.cpp parser.hpp statement.hpp databaseBook.hpp error.hpp databaseAccount.hpp databaseDiary.hpp)
+

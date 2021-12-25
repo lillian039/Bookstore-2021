@@ -1,49 +1,25 @@
 #ifndef BOOKSTORE_STATEMENT_HPP
 #define BOOKSTORE_STATEMENT_HPP
 
-#include "database.hpp"
+#include "databaseBook.hpp"
+#include "databaseDiary.hpp"
+#include "databaseAccount.hpp"
 #include "error.hpp"
+#include <cstdio>
+#include <iomanip>
 
-//todo unchanged number
-//abstract Command
+//todo 全局变量选中图书
+//todo 登录栈 全局队列
+
+std::vector<LogStack> onlineusers;
+
 class Command {
-protected:
-    fstream fileUserInf;//账户系统
-    fstream fileBookISBN;//ISBN->information
-    fstream fileBookAuthor;//author->ISBN
-    fstream fileBookKeyword;//keyword->ISBN
-    fstream fileBookName;//name->ISBN
-    fstream logStack;//登录栈
-    fstream stuffReport;//员工工作记录
-    fstream financeRecord;//财务记录
-    fstream fileBackup;//文件备份
 public:
 
-    Command() {
-        //todo 打开文件
-        fileUserInf.open("UserInf");
-        fileBookISBN.open("BookISBN");
-        fileBookAuthor.open("BookAuthor");
-        fileBookKeyword.open("BookKeyword");
-        fileBookName.open("BookName");
-        logStack.open("logStack");
-        stuffReport.open("stuffReport");
-        financeRecord.open("financeRecord");
-        fileBackup.open("fileBackup");
-    }
+    Command() {}
 
-    virtual ~Command() {
-        //todo 关闭文件
-        fileUserInf.close();
-        fileBookISBN.close();
-        fileBookAuthor.close();
-        fileBookKeyword.close();
-        fileBookName.close();
-        logStack.close();
-        stuffReport.close();
-        financeRecord.close();
-        fileBackup.close();
-    }
+    virtual ~Command() {}
+
 
     virtual void exit() = 0;
 
@@ -96,10 +72,16 @@ public:
 
 };
 
-
 class Visitor : public Command {
 public:
     void exit() override {
+      /*  //todo 最后记得要删掉！我只是不想手动删文件quq
+        remove("accountfile");
+        remove("allbooks");
+        remove("AuthorCatalogue");
+        remove("ISBNCatalogue");
+        remove("KeywordCatalogue");
+        remove("NameCatalogue");*/
         std::exit(0);
     }
 
@@ -108,21 +90,26 @@ public:
         if (words.size() > 3 || words[1].size() > 30 || words[2].size() > 30)throw MyError();
         string userid = words[1];
         string passwd = words[2];
-        Ull<UserInf> findUser("UserInformation");
+        AccountInf accountInf("accountfile");
         UserInf userInf;
-        userInf = findUser.FindValue(userid);
+        userInf = accountInf.FindValue(userid);
+        if (string(userInf.index) == "null")throw MyError();
         if (userInf.value.password == passwd) {
-            //todo 登录栈读写
+            LogStack logstack;
+            logstack.userInf = userInf;
+            onlineusers.push_back(logstack);
         } else throw (MyError());
     }
 
     //注册账户register [User-ID] [Password] [User-Name]
     void Register(std::vector<std::string> &words) override {
-        if (words.size() > 4 || words[1].size() > 30 || words[2].size() > 30 || words[3].size() > 30)throw MyError();
+        if (words.size() != 4 || words[1].size() > 30 || words[2].size() > 30 || words[3].size() > 30)throw MyError();
         UserInfValue userInfValue(words[2], words[3], 1);
         UserInf userInf(words[1], userInfValue);
-        //todo 进行一个文件的写
-        //todo 判断userid是否存在
+        AccountInf accountInf("accountfile");
+        UserInf userInf_pre = accountInf.FindValue(words[1]);
+        if (std::string(userInf_pre.index) != "null")throw MyError();
+        accountInf.InsertValue(userInf);
     }
 
 
@@ -132,29 +119,30 @@ class Customer : public Visitor {
 public:
     //注销账户logout
     void Logout(std::vector<std::string> &words) override {
-        //todo 进行登录栈文件读写
-        //要不再开一个登录栈类吧不然好麻烦啊quq
+        onlineusers.pop_back();
     }
 
     //修改密码passwd [User-ID] ([Old-Password])? [New-Password]
     void Passwd(std::vector<std::string> &words) override {
         if (words.size() > 4 || words[1].size() > 30 || words[2].size() > 30 || words[3].size() > 30)throw MyError();
-        Ull<UserInf> findUser("UserInformation");
+        AccountInf accountInf("UserInformation");
         UserInf userInf;
         std::string userid = words[1];
         std::string oldpasswd = words[2];
         std::string newpasswd = words[3];
         PasswdInvaild(oldpasswd);
         PasswdInvaild(newpasswd);
-        userInf = findUser.FindValue(userid);
+        userInf = accountInf.FindValue(userid);
         if (userInf.value.password == oldpasswd) {
-            //todo 登录栈读写
+            strcpy(userInf.value.password, newpasswd.c_str());
+            accountInf.DeleteValue(userid);
+            accountInf.InsertValue(userInf);
         } else throw (MyError());
     }
 
     //检索图书show (-ISBN=[ISBN] | -name="[Book-Name]" | -author="[Author]" | -keyword="[Keyword]")?
     void Show(std::vector<std::string> &words) override {
-        if (words.size() > 2)throw MyError();
+        if (words.size() != 2)throw MyError();
         std::string search = words[1];
         words.pop_back();
         std::string word = "";
@@ -162,30 +150,76 @@ public:
             if (search[i] == '=' || i == search.size()) {
                 words.push_back(word);
                 word = "";
+                continue;
             }
+            if (search[i] == '"')continue;
             word += search[i];
         }
+        BookInfISBN bookInfIsbn;
+        BookInfoIndex bookInfoIndex;
+        Ull<BookInfoIndex> ull;
+        AllBook books;
+        vector<int> index;
         if (words[1] == "-ISBN") {
-
+            bookInfIsbn.Initialize(words[2], 0);
+            Ull<BookInfISBN> ull("ISBNCatalogue");
+            index = ull.FindValue(bookInfIsbn);
+            if (index.size() == 0)throw MyError();
+            BookInf book;
+            book = books.findInf(index[0]);
+            cout << book;
+            return;
         } else {
             BooknameInvalid(words[2]);
             if (words[1] == "-name") {
+                bookInfoIndex.Initialize(words[2], 0);
+                ull.Initailize("NameCatalogue");
 
             } else if (words[1] == "-author") {
+                bookInfoIndex.Initialize(words[2], 0);
+                ull.Initailize("AuthorCatalogue");
 
             } else if (words[1] == "-keyword") {
-
+                bookInfoIndex.Initialize(words[2], 0);
+                ull.Initailize("KeywordCatalogue");
             } else throw MyError();
+            index = ull.FindValue(bookInfoIndex);
+            if (index.size() == 0)throw MyError();
+            std::vector<BookInf> book;
+            for (int i = 0; i < index.size(); i++) {
+                book.push_back(books.findInf(index[i]));
+            }
+            sort(book.begin(),book.end());
+            for(int i=0;i<book.size();i++){
+                cout<<book[i];
+            }
         }
     }
 
     //购买图书buy [ISBN] [Quantity]
     void Buy(std::vector<std::string> &words) override {
+        //异常判断
         if (words.size() > 3 || words[2] > "2147483647")throw MyError();
         BooknameInvalid(words[1]);
-        //todo 书籍文件读写
-        //todo 财务文件读写
-
+        //书籍文件读写
+        BookInfISBN bookInfIsbn;
+        bookInfIsbn.Initialize(words[1], 0);
+        Ull<BookInfISBN> ull("ISBNCatalogue");
+        vector<int> index;
+        index = ull.FindValue(bookInfIsbn);
+        if (index.size() == 0)throw MyError();
+        BookInf book;
+        AllBook books;
+        book = books.findInf(index[0]);
+        int quantity = atoi(words[2].c_str());
+        if(book.quantity<quantity)throw MyError();
+        book.quantity -= quantity;
+        std::cout << fixed << setprecision(2) << book.price * quantity << std::endl;
+        books.CoverInf(book, index[0]);
+        //财务文件读写
+        int deal = book.price * quantity;
+        FinanceRecord financeRecord;
+        financeRecord.addNewFiance(deal);
     }
 
 
@@ -196,9 +230,19 @@ public:
     //$登录账户su [User-ID] ([Password])?
     //如果当前账户权限等级高于登录账户则可以省略密码
     void Login(std::vector<std::string> &words) override {
+        if (words.size() > 3)throw MyError();
         PasswdInvaild(words[2]);
-        //todo 文件读写 判断priority
-        //todo 文件读写 登录栈
+        UserInf userInf;
+        AccountInf accountInf("accountfile");
+        userInf = accountInf.FindValue(words[1]);
+        LogStack logstack;
+        logstack.userInf = userInf;
+        if (userInf.value.Priority < 3) {
+            onlineusers.push_back(logstack);
+            return;
+        }
+        if (string(userInf.value.password) == words[2]) onlineusers.push_back(logstack);
+        else throw MyError();
     }
 
     //创建账户useradd [User-ID] [Password] [Priority] [User-Name]
@@ -207,53 +251,147 @@ public:
         PasswdInvaild(words[1]);
         PasswdInvaild(words[2]);
         if (words[3] < "0" || words[3] > "9")throw MyError();
-        //todo 判断priority
-        //todo 文件读写
+        std::string userid = words[1];
+        std::string passwd = words[2];
+        int priority = atoi(words[3].c_str());
+        std::string username = words[4];
+        if (priority >= 7)throw MyError();
+        UserInfValue userInfValue(passwd, username, priority);
+        UserInf userInf(userid, userInfValue);
+        AccountInf accountInf("accountfile");
+        accountInf.InsertValue(userInf);
+        userInf = accountInf.FindValue(userid);//todo 在文件读写中直接判断userid是否存在
     }
 
     //选择图书select [ISBN]
+    //以**当前账户**选中指定图书（账户登出后无需保存选中图书情况）
+    //- 没有符合条件的图书则创建仅拥有 `[ISBN]` 信息的新图书
+    //- 退出系统视为取消选中图书
+    //- 新的账户登入 默认为无选中图书状态 但是登出后原先的账户依然保持选中状态 仅能选中一本书
+    //文件读写？
     void Select(std::vector<std::string> &words) override {
-        if (words.size() > 2)throw MyError();
-        //todo 文件读写
+        if (words.size() > 2 || onlineusers.empty())throw MyError();
+        BookInfISBN bookInfIsbn;
+        BookInf bookInf;
+        bookInfIsbn.Initialize(words[1], 0);
+        Ull<BookInfISBN> ull("ISBNCatalogue");
+        std::string ISBN = words[1];
+        vector<int> index;
+        index = ull.FindValue(bookInfIsbn);
+        AllBook allBook;
+        LogStack logStack;
+        logStack = onlineusers.back();
+        onlineusers.pop_back();
+        int num;
+        if (index.size() == 0) {
+            strcpy(bookInf.ISBN, ISBN.c_str());
+            num = allBook.InsertInf(bookInf);//创建图书
+            bookInfIsbn.value = num;
+            ull.InsertValue(bookInfIsbn);
+        } else {
+            bookInf = allBook.findInf(index[0]);//找到图书
+            num = index[0];
+            logStack.exist = true;
+        }
+        logStack.index = num;
+        logStack.select = true;
+        logStack.bookInf = bookInf;
+        onlineusers.push_back(logStack);
     }
 
     //修改图书modify (-ISBN=[ISBN] | -name="[Book-Name]" | -author="[Author]" | -keyword="[Keyword]" | -price=[Price])+
     void Modify(std::vector<std::string> &words) override {
-        if (words.size() > 2)throw MyError();
-        std::string search = words[1];
-        words.pop_back();
-        std::string word;
-        for (int i = 0; i <= search.size(); i++) {
-            if (search[i] == '=' || i == search.size()) {
-                words.push_back(word);
-                word = "";
+        LogStack logStack;
+        AllBook allBook;
+        logStack = onlineusers.back();
+        if (!logStack.select)throw MyError();//登录栈是否有选中图书判断
+        //处理语法结构
+        std::vector<std::string> infom = ParseModify(words);
+        if (infom.empty() % 2 != 0)throw MyError();
+        for (int i = 0; i < infom.size(); i += 2) {
+            if (infom[i] == "-name") {
+                BooknameInvalid(infom[i + 1]);
+                BookInfoIndex bookInfoIndex;
+                bookInfoIndex.Initialize(std::string(logStack.bookInf.book_name), logStack.index);
+                Ull<BookInfoIndex> ull("NameCatalogue");
+                ull.DeleteValue(bookInfoIndex);
+                strcpy(logStack.bookInf.book_name, infom[i + 1].c_str());
+                strcpy(bookInfoIndex.index, infom[i + 1].c_str());
+                ull.InsertValue(bookInfoIndex);
+            } else if (infom[i] == "-author") {
+                BooknameInvalid(infom[2]);
+                BookInfoIndex bookInfoIndex;
+                bookInfoIndex.Initialize(std::string(logStack.bookInf.author), logStack.index);
+                Ull<BookInfoIndex> ull("AuthorCatalogue");
+                ull.DeleteValue(bookInfoIndex);
+                strcpy(logStack.bookInf.author, infom[i + 1].c_str());
+                strcpy(bookInfoIndex.index, infom[i + 1].c_str());
+                ull.InsertValue(bookInfoIndex);
+            } else if (infom[i] == "-keyword") {
+                //todo keyword split
+                std::vector<std::string> new_keywords;
+                new_keywords = ProcessKeyword(infom[i + 1]);
+                BooknameInvalid(infom[i + 1]);
+                Ull<BookInfoIndex> ull("KeywordCatalogue");
+                BookInfoIndex bookInfoIndex;
+                for (int j = 0; j < new_keywords.size(); j++) {
+                    bookInfoIndex.Initialize(new_keywords[j], logStack.index);
+                    ull.InsertValue(bookInfoIndex);
+                }
+                if (logStack.exist) {
+                    std::vector<std::string> old_keywords;
+                    std::string keyword_ = std::string(logStack.bookInf.keyword);
+                    old_keywords = ProcessKeyword(keyword_);
+                    for (int j = 0; j < old_keywords.size(); j++) {
+                        bookInfoIndex.Initialize(old_keywords[j], logStack.index);
+                        ull.DeleteValue(bookInfoIndex);
+                    }
+                }
+                strcpy(logStack.bookInf.keyword, infom[i + 1].c_str());
+            } else if (infom[i] == "-ISBN") {
+                BookInfISBN bookInfIsbn;//修改索引ISBN
+                bookInfIsbn.Initialize(std::string(logStack.bookInf.ISBN), logStack.index);
+                Ull<BookInfISBN> ull("ISBNCatalogue");
+                ull.DeleteValue(bookInfIsbn);
+                strcpy(logStack.bookInf.ISBN, infom[i + 1].c_str());
+                strcpy(bookInfIsbn.index, infom[i + 1].c_str());
+                ull.InsertValue(bookInfIsbn);
+            } else if (infom[i] == "-price") {
+                FloatInvalid(infom[i + 1]);
+                logStack.bookInf.price = atof(infom[i + 1].c_str());
+            } else if (infom[i] == "-quantity") {
+                IntInvalid(infom[i + 1]);
+                logStack.bookInf.quantity = atoi(infom[i + 1].c_str());
             }
-            word += search[i];
         }
-        if (words[1] == "-ISBN") {
-
-        } else {
-            BooknameInvalid(words[2]);
-            if (words[1] == "-name") {
-
-            } else if (words[1] == "-author") {
-
-            } else if (words[1] == "-keyword") {
-
-            } else throw MyError();
-        }
+        allBook.CoverInf(logStack.bookInf, logStack.index);//修改后的图书信息
     }
 
-    //图书进货import [Quantity] [Total-Cost]
+//图书进货import [Quantity] [Total-Cost]
     void Import(std::vector<std::string> &words) override {
-        if (words.size() > 3)throw MyError();
-        //todo 书籍文件读写
+        if (words.size() != 3)throw MyError();
+        LogStack logStack;
+        logStack = onlineusers.back();
+        if (!logStack.select)throw MyError();
+        AllBook allBook;
+        BookInf bookInf;
+        IntInvalid(words[1]);
+        FloatInvalid(words[2]);
+        bookInf = allBook.findInf(logStack.index);
+        int import_quantity = atoi(words[1].c_str());
+        bookInf.quantity += import_quantity;
+        allBook.CoverInf(bookInf, logStack.index);
+        FinanceRecord financeRecord;
+        int totalcost = atoi(words[2].c_str()) * (-1);//添加财务信息
+        financeRecord.addNewFiance(totalcost);
     }
 
-    //*生成员工操作记录report myself
+//*生成员工操作记录report myself
     void Report(std::vector<std::string> &words) override {
         if (words.size() > 2 || words[1] != "myself")throw MyError();
-        //todo 员工工作记录文件读写
+        std::cout << "I haven't complete report\n";
+//todo 重用ull与database（1024）
+//todo 员工工作记录文件读写
     }
 
 
@@ -266,12 +404,30 @@ public:
     //$修改密码passwd [User-ID] ([Old-Password])? [New-Password]
     //priority=7 可省略old-password
     void Passwd(vector<std::string> &words) override {
-        //todo 可省略密码 其余同上
+        if (words.size() != 3 && words.size() != 4)throw MyError();
+        std::string newpasswd;
+        if (words.size() == 4)newpasswd = words[3];
+        else if (words.size() == 3)newpasswd = words[2];
+        else throw MyError();
+        if (words[1].size() > 30)throw MyError();
+        AccountInf accountInf("accountfile");
+        UserInf userInf;
+        userInf = accountInf.FindValue(words[1]);
+        strcpy(userInf.value.password, newpasswd.c_str());
+        accountInf.DeleteValue(words[1]);
+        accountInf.InsertValue(userInf);
     }
 
 
     //删除账户delete [User-ID]
     void Delete(vector<std::string> &words) override {
+        if (words.size() != 2)throw MyError();
+        if (words[1].size() > 30)throw MyError();
+        for (int i = 0; i < onlineusers.size(); i++) {
+            if (std::string(onlineusers[i].userInf.index) == words[1])throw MyError();
+        }
+        AccountInf accountInf("accountfile");
+        accountInf.DeleteValue(words[1]);
         //todo 文件内容删除
     }
 
@@ -284,22 +440,50 @@ public:
     //*&生成员工操作记录report myself
     //财务记录查询show finance ([Time])?
     void showFinance(vector<std::string> &words) override {
-
+        int time;
+        int *finance;
+        int sum = 0;
+        FinanceRecord financeRecord;
+        if (words.size() == 3) {
+            IntInvalid(words[2]);
+            time = atoi(words[2].c_str());
+            if (time == 0) {
+                std::cout << '\n';
+                return;
+            }
+            finance = financeRecord.totalFinance(time);
+            for (int i = 0; i < time; i++) {
+                sum += finance[i];
+                if (finance[i] > 0)std::cout << " + " << finance[i];
+                else if (finance[i] < 0)std::cout << " - " << finance[i];
+            }
+            cout << endl;
+            delete[]finance;
+            return;
+        } else if (words.size() == 2) {
+            time = financeRecord.totalTime();
+            finance = financeRecord.totalFinance(time);
+            for (int i = 0; i < time; i++) {
+                sum += finance[i];
+            }
+            std::cout << sum << endl;
+            delete[]finance;
+        } else throw MyError();
     }
 
     //*生成财务记录报告report finance
     void reportFinance(vector<std::string> &words) override {
-        if(words.size()>2)throw MyError();
+        if (words.size() > 2)throw MyError();
     }
 
     //*生成全体员工工作情况报告report employee
-    void reportEmployee(vector<std::string> &words)override{
-        if(words.size()>2)throw MyError();
+    void reportEmployee(vector<std::string> &words) override {
+        if (words.size() > 2)throw MyError();
     }
     //*生成日志log
     /*对于该函数的实现有文件输出格式要求，详见四、3中关于文件的说明*/
-    void Log(vector<std::string> &words)override{
-        if(words.size()>2)throw MyError();
+    void Log(vector<std::string> &words) override {
+        if (words.size() > 2)throw MyError();
     }
 
 

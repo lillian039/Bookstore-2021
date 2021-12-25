@@ -1,0 +1,69 @@
+#ifndef BOOKSTORE_DATABASEDIARY_HPP
+#define BOOKSTORE_DATABASEDIARY_HPP
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <cstring>
+#include <algorithm>
+#include <unistd.h>
+#include "error.hpp"
+//记录财务信息
+class FinanceRecord{
+private:
+    int time;
+    int *money;
+    int deal;
+    fstream financeFile;
+public:
+    FinanceRecord(){
+        financeFile.open("FinanceFile");
+        if(!financeFile){
+            financeFile.open("FinanceFile",ios_base::out);
+            financeFile.close();
+            financeFile.open("FinanceFile");
+            financeFile.seekg(0);
+            time=0;
+            financeFile.write(reinterpret_cast<char *>(&time), sizeof(int));
+        }
+    }
+
+    int *totalFinance(int time_){
+        financeFile.seekg(0);
+        financeFile.read(reinterpret_cast<char *>(&time), sizeof(int));
+        if(time_>time)throw MyError();
+        money=new int [time];//todo 记得delete
+        financeFile.read(reinterpret_cast<char *>(&money), time*sizeof(int));
+        return money;
+    }
+
+    int totalTime(){
+        financeFile.seekg(0);
+        financeFile.read(reinterpret_cast<char *>(&time), sizeof(int));
+        return time;
+    }
+    void addNewFiance(int money){
+        financeFile.seekg(0);
+        financeFile.read(reinterpret_cast<char *>(&time), sizeof(int));
+        deal=money;
+        financeFile.seekg(sizeof(int)+time* sizeof(int));
+        financeFile.write(reinterpret_cast<char *>(&deal), sizeof(int));
+    }
+};
+
+class StuffOperat{
+
+};
+
+struct StuffIndex{
+    char stuffname[31];
+    int index;
+};
+
+struct Operat{
+    char operate[1025];//单条指令长达1025
+};
+class StuffDatabase{
+
+};
+#endif //BOOKSTORE_DATABASEDIARY_HPP

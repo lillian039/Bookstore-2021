@@ -1,0 +1,67 @@
+60
+insert FlowersForAlgernon 1966
+insert CppPrimer 2012
+insert CppPrimer 2019
+insert Dune 2021
+insert Dune 2026
+insert Dune 2029
+insert FlowersForAlgernon 1969
+insert CppPrimer 2016
+insert CppPrimer 2015
+insert Dune 2014
+insert Dune 2013
+insert Dune 2030
+delete FlowersForAlgernon 1966
+find FlowersForAlgernon
+delete FlowersForAlgernon 1969
+find FlowersForAlgernon
+delete Dune 2029
+find Dune
+insert CppPrimer 2000
+insert CppPrimer 2001
+insert CppPrimer 2003
+insert CppPrimer 2006
+insert CppPrimer 2007
+find CppPrimer
+delete CppPrimer 2000
+delete CppPrimer 2001
+delete CppPrimer 2003
+delete CppPrimer 2006
+delete CppPrimer 2007
+find CppPrimer
+delete CppPrimer 2019
+delete CppPrimer 2012
+find CppPrimer
+insert Dune 2026
+insert FlowersForAlgernon 1969
+insert Jave 1969
+insert Jave 1964
+insert Clion 1854
+find Math
+insert Math 1938
+insert Water 1957
+insert Clion 1923
+insert Clion 1921
+find Math
+find Water
+insert CppPrimer 111
+find CppPrimer
+find FlowersForAlgernon
+delete FlowersForAlgernon 1969
+delete FlowersForAlgernon 1966
+find FlowersForAlgernon
+delete CppPrimer 2001
+find CppPrimer
+delete CppPrimer 2001
+delete CppPrimer 2003
+delete CppPrimer 2006
+delete CppPrimer 2012
+delete Clion 1923
+delete Clion 1921
+delete Clion 1854
+delete Dune 2026
+find FlowersForAlgernon
+find Clion
+find Dune
+find FlowersForAlgernon
+find Math
