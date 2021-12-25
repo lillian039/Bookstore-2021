@@ -5,8 +5,6 @@
 #include "error.hpp"
 
 int main() {
-    freopen("1.in","r",stdin);
-    freopen("me.out","w",stdout);
     string commandLine;
     Command *user;
     while(true){
