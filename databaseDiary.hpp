@@ -14,8 +14,8 @@
 class FinanceRecord {
 private:
     int time;
-    float *money;
-    float deal;
+    int *money;
+    int deal;
     fstream financeFile;
 public:
     FinanceRecord() {
@@ -30,13 +30,13 @@ public:
         }
     }
 
-    float* totalFinance(int time_) {
+    int* totalFinance(int time_) {
         financeFile.seekg(0);
         financeFile.read(reinterpret_cast<char *>(&time), sizeof(int));
         if (time_ > time)throw MyError();
-        money = new float[time_];//todo 记得delete
-        financeFile.seekg(sizeof(int)+(time-time_)*sizeof(float));
-        financeFile.read(reinterpret_cast<char *>(money), time_ * sizeof(float));
+        money = new int[time_];//todo 记得delete
+        financeFile.seekg(sizeof(int)+(time-time_)*sizeof(int));
+        financeFile.read(reinterpret_cast<char *>(money), time_ * sizeof(int));
         return money;
     }
 
@@ -46,12 +46,12 @@ public:
         return time;
     }
 
-    void addNewFiance(float money_) {
+    void addNewFiance(int money_) {
         financeFile.seekg(0);
         financeFile.read(reinterpret_cast<char *>(&time), sizeof(int));
         deal = money_;
-        financeFile.seekg(sizeof(int) + time * sizeof(float));
-        financeFile.write(reinterpret_cast<char *>(&deal), sizeof(float));
+        financeFile.seekg(sizeof(int) + time * sizeof(int));
+        financeFile.write(reinterpret_cast<char *>(&deal), sizeof(int));
         time++;
         financeFile.seekg(0);
         financeFile.write(reinterpret_cast<char *>(&time), sizeof(int));

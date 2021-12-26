@@ -75,14 +75,14 @@ public:
 class Visitor : public Command {
 public:
     void exit() override {
-     /*   //todo 最后记得要删掉！我只是不想手动删文件quq
-        remove("accountfile");
-        remove("allbooks");
-        remove("AuthorCatalogue");
-        remove("ISBNCatalogue");
-        remove("KeywordCatalogue");
-        remove("NameCatalogue");
-        remove("FinanceFile");*/
+        /*   //todo 最后记得要删掉！我只是不想手动删文件quq
+           remove("accountfile");
+           remove("allbooks");
+           remove("AuthorCatalogue");
+           remove("ISBNCatalogue");
+           remove("KeywordCatalogue");
+           remove("NameCatalogue");
+           remove("FinanceFile");*/
         std::exit(0);
     }
 
@@ -95,7 +95,7 @@ public:
         UserInf userInf;
         userInf = accountInf.FindValue(userid);
         if (string(userInf.index) == "null")throw MyError();
-        if (userInf.value.password == passwd) {
+        if (std::string(userInf.value.password) == passwd) {
             LogStack logstack;
             logstack.userInf = userInf;
             onlineusers.push_back(logstack);
@@ -120,6 +120,7 @@ class Customer : public Visitor {
 public:
     //注销账户logout
     void Logout(std::vector<std::string> &words) override {
+        if (onlineusers.empty())throw MyError();
         onlineusers.pop_back();
     }
 
@@ -134,7 +135,7 @@ public:
         PasswdInvaild(oldpasswd);
         PasswdInvaild(newpasswd);
         userInf = accountInf.FindValue(userid);
-        if(std::string(userInf.index)=="null")throw MyError();
+        if (std::string(userInf.index) == "null")throw MyError();
         if (string(userInf.value.password) == oldpasswd) {
             strcpy(userInf.value.password, newpasswd.c_str());
             accountInf.DeleteValue(userid);
@@ -214,6 +215,7 @@ public:
         //异常判断
         if (words.size() != 3)throw MyError();
         BooknameInvalid(words[1]);
+        IntInvalid(words[2]);
         //书籍文件读写
         BookInfISBN bookInfIsbn;
         bookInfIsbn.Initialize(words[1], 0);
@@ -227,10 +229,11 @@ public:
         int quantity = atoi(words[2].c_str());
         if (book.quantity < quantity)throw MyError();
         book.quantity -= quantity;
-        std::cout << fixed << setprecision(2) << book.price * quantity << std::endl;
+        std::cout << book.price * quantity / 100 << "." << setw(2) << setfill('0') << book.price * quantity % 100
+                  << std::endl;
         books.CoverInf(book, index[0]);
         //财务文件读写
-        float deal = book.price * quantity;
+        int deal = book.price * quantity;
         FinanceRecord financeRecord;
         financeRecord.addNewFiance(deal);
     }
@@ -243,8 +246,8 @@ public:
     //$登录账户su [User-ID] ([Password])?
     //如果当前账户权限等级高于登录账户则可以省略密码
     void Login(std::vector<std::string> &words) override {
-        if (words.size() > 3)throw MyError();
-        PasswdInvaild(words[2]);
+        if (words.size() != 3 && words.size() != 2)throw MyError();
+        if (words.size() == 3)PasswdInvaild(words[2]);
         UserInf userInf;
         AccountInf accountInf("accountfile");
         userInf = accountInf.FindValue(words[1]);
@@ -261,14 +264,14 @@ public:
     //创建账户useradd [User-ID] [Password] [Priority] [User-Name]
     //-如果待创建账户的权限等级大于等于当前账户权限等级则操作失败
     void Useradd(std::vector<std::string> &words) override {
+        if (words.size() != 5)throw MyError();
         PasswdInvaild(words[1]);
         PasswdInvaild(words[2]);
-        if (words[3] < "0" || words[3] > "9")throw MyError();
+        PriorityInvalid(words[3]);
         std::string userid = words[1];
         std::string passwd = words[2];
         int priority = atoi(words[3].c_str());
         std::string username = words[4];
-        if (priority >= 7)throw MyError();
         UserInfValue userInfValue(passwd, username, priority);
         UserInf userInf(userid, userInfValue);
         AccountInf accountInf("accountfile");
@@ -288,6 +291,7 @@ public:
         if (words.size() != 2 || onlineusers.empty())throw MyError();
         BookInfISBN bookInfIsbn;
         BookInf bookInf;
+        if (words[1].size() > 20)throw MyError();
         bookInfIsbn.Initialize(words[1], 0);
         Ull<BookInfISBN> ull("ISBNCatalogue");
         std::string ISBN = words[1];
@@ -306,7 +310,9 @@ public:
         } else {
             bookInf = allBook.findInf(index[0]);//找到图书
             num = index[0];
-            logStack.exist = true;
+            for(int i=0;i<3;i++) {
+                logStack.exist[i] = true;
+            }
         }
         logStack.index = num;
         logStack.select = true;
@@ -316,6 +322,7 @@ public:
 
     //修改图书modify (-ISBN=[ISBN] | -name="[Book-Name]" | -author="[Author]" | -keyword="[Keyword]" | -price=[Price])+
     void Modify(std::vector<std::string> &words) override {
+        if(onlineusers.empty())throw MyError();
         LogStack logStack;
         AllBook allBook;
         logStack = onlineusers.back();
@@ -334,7 +341,7 @@ public:
                 strcpy(bookInfoIndex.index, infom[i + 1].c_str());
                 ull.InsertValue(bookInfoIndex);
             } else if (infom[i] == "-author") {
-                BooknameInvalid(infom[i+1]);
+                BooknameInvalid(infom[i + 1]);
                 BookInfoIndex bookInfoIndex;
                 bookInfoIndex.Initialize(std::string(logStack.bookInf.author), logStack.index);
                 Ull<BookInfoIndex> ull("AuthorCatalogue");
@@ -353,7 +360,7 @@ public:
                     bookInfoIndex.Initialize(new_keywords[j], logStack.index);
                     ull.InsertValue(bookInfoIndex);
                 }
-                if (logStack.exist) {
+                if (logStack.exist[2]) {
                     std::vector<std::string> old_keywords;
                     std::string keyword_ = std::string(logStack.bookInf.keyword);
                     old_keywords = ProcessKeyword(keyword_);
@@ -362,21 +369,21 @@ public:
                         ull.DeleteValue(bookInfoIndex);
                     }
                 }
+                onlineusers[onlineusers.size() - 1].exist[2] = true;
                 strcpy(logStack.bookInf.keyword, infom[i + 1].c_str());
             } else if (infom[i] == "-ISBN") {
                 BookInfISBN bookInfIsbn;//修改索引ISBN
                 BookInfISBN tmp;
-                tmp.Initialize(infom[i+1],0);
+                tmp.Initialize(infom[i + 1], 0);
                 bookInfIsbn.Initialize(std::string(logStack.bookInf.ISBN), logStack.index);
                 Ull<BookInfISBN> ull("ISBNCatalogue");
-                if(!ull.FindValue(tmp).empty())throw MyError();
+                if (!ull.FindValue(tmp).empty())throw MyError();
                 ull.DeleteValue(bookInfIsbn);
                 strcpy(logStack.bookInf.ISBN, infom[i + 1].c_str());
                 strcpy(bookInfIsbn.index, infom[i + 1].c_str());
                 ull.InsertValue(bookInfIsbn);
             } else if (infom[i] == "-price") {
-                FloatInvalid(infom[i + 1]);
-                logStack.bookInf.price = atof(infom[i + 1].c_str());
+                logStack.bookInf.price = FloatInvalid(infom[i + 1]);
             } else if (infom[i] == "-quantity") {
                 IntInvalid(infom[i + 1]);
                 logStack.bookInf.quantity = atoi(infom[i + 1].c_str());
@@ -395,13 +402,12 @@ public:
         AllBook allBook;
         BookInf bookInf;
         IntInvalid(words[1]);
-        FloatInvalid(words[2]);
         bookInf = allBook.findInf(logStack.index);
         int import_quantity = atoi(words[1].c_str());
         logStack.bookInf.quantity += import_quantity;
         allBook.CoverInf(logStack.bookInf, logStack.index);
         FinanceRecord financeRecord;
-        float totalcost = atof(words[2].c_str()) * (-1);//添加财务信息
+        int totalcost = FloatInvalid(words[2]) * (-1);//添加财务信息
         financeRecord.addNewFiance(totalcost);
         onlineusers[onlineusers.size() - 1].bookInf = logStack.bookInf;
     }
@@ -461,9 +467,9 @@ public:
     //财务记录查询show finance ([Time])?
     void showFinance(vector<std::string> &words) override {
         int time;
-        float *finance;
-        float sum_plus = 0;
-        float sum_minus = 0;
+        int *finance;
+        int sum_plus = 0;
+        int sum_minus = 0;
         FinanceRecord financeRecord;
         if (words.size() == 3) {
             IntInvalid(words[2]);
@@ -478,9 +484,11 @@ public:
         finance = financeRecord.totalFinance(time);
         for (int i = 0; i < time; i++) {
             if (finance[i] < 0)sum_minus += finance[i];
-            else if (finance[i] > 0)sum_plus += finance[i];
+            else if (finance[i] > 0)sum_plus += (finance[i]);
         }
-        std::cout << "+ " << fixed << setprecision(2) << sum_plus << " - " << (-1) * sum_minus << '\n';
+        std::cout << "+ " << sum_plus / 100 << "." << setw(2) << setfill('0') << sum_plus % 100;
+        std::cout << " - " << (-1) * sum_minus / 100 << "." << setw(2) << setfill('0') << (-1) * sum_minus % 100
+                  << '\n';
         delete[]finance;
     }
 

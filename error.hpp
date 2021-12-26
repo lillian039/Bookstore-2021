@@ -51,21 +51,36 @@ void IntInvalid(std::string &num) {
     }
 }
 
-void FloatInvalid(std::string &num) {
+void PriorityInvalid(std::string &num){
+    if(num.size()!=1)throw MyError();
+    if(num[0]!='1'&&num[0]!='3')throw MyError();
+}
+
+int FloatInvalid(std::string &num) {
+    int sum=0;
     for (int i = 0; i < num.size(); i++) {
         if ((num[i] < '0' || num[i] > '9') && num[i] != '.')throw MyError();
         if (num[i] == '.') {
             if (i + 2 == num.size() - 1) {
                 if (num[i + 1] < '0' || num[i + 1] > '9')throw MyError();
+                sum+=num[i+1]-'0';
+                sum*=10;
                 if (num[i + 2] < '0' || num[i + 2] > '9')throw MyError();
-                return;
+                sum+=num[i+2]-'0';
+                return sum;
             }
             else if (i + 1 == num.size() - 1) {
                 if (num[i + 1] < '0' || num[i + 1] > '9')throw MyError();
-                return;
+                sum+=num[i+1]-'0';
+                sum*=10;
+                return sum;
             }
         }
+        sum+=num[i]-'0';
+        sum*=10;
     }
+    sum*=10;
+    return sum;
 }
 
 //修改图书modify (-ISBN=[ISBN] | -name="[Book-Name]" | -author="[Author]" | -keyword="[Keyword]" | -price=[Price])+

@@ -17,6 +17,7 @@
 using namespace std;
 
 class AllBook;
+
 //第一个索引 ISBN->map
 struct BookInfISBN {
     char index[21];//ISBN
@@ -98,20 +99,20 @@ struct BookInf {
     char author[61] = "";
     char keyword[61] = "";
     int quantity = 0;
-    float price = 0;
+    int price = 0;
 
 
     void Initialize(string book_name_, string author_, string keyword_, string price) {
         strcpy(book_name, book_name_.c_str());
         strcpy(author, author_.c_str());
         strcpy(keyword, keyword_.c_str());
-        price = stof(price);
+        price = FloatInvalid(price);
     }
 
     friend ostream &operator<<(ostream &os, const BookInf &inf) {
         os << inf.ISBN << '\t' << inf.book_name << '\t' << inf.author << '\t'
            << inf.keyword << '\t';
-        os << fixed << setprecision(2) << inf.price << '\t';
+        os << inf.price/100<<"."<<setw(2)<<setfill('0')<<inf.price%100 << '\t';
         os << inf.quantity << '\n';
         return os;
     }
@@ -364,8 +365,8 @@ public:
         while (true) {
             file_catalogue.read(reinterpret_cast<char *>(&indexbase), sizeof(IndexBase<T>));
             for (int i = 0; i < indexbase.size; i++) {
-                location=indexbase.node[i].value;
-                cout<<allBook.findInf(location);
+                location = indexbase.node[i].value;
+                cout << allBook.findInf(location);
             }
             if (indexbase.next == 0)break;
             file_catalogue.seekg(sizeof(int) + indexbase.next * sizeof(IndexBase<T>), ios::beg);
@@ -374,8 +375,6 @@ public:
 
 
 };
-
-
 
 
 #endif //BOOKSTORE_DATABASEBOOK_HPP

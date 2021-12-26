@@ -239,7 +239,7 @@ public:
 struct LogStack {
     UserInf userInf;
     bool select = false;//是否有选中的图书
-    bool exist = false;//选中的图书是否存在
+    bool exist[3] = {0};//选中的图书是否存在
     BookInf bookInf;
     int index;
 };
