@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include "error.hpp"
 using namespace std;
-#define MAXSIZE 300
+#define MAXSIZE 100
 
 struct UserInfValue {
     char password[31];

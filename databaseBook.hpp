@@ -11,7 +11,7 @@
 #include "error.hpp"
 #include <iomanip>
 
-#define MAXSIZE 300
+#define MAXSIZE 100
 
 
 using namespace std;

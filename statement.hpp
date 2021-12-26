@@ -122,6 +122,11 @@ public:
     void Logout(std::vector<std::string> &words) override {
         if (onlineusers.empty())throw MyError();
         onlineusers.pop_back();
+        int n=onlineusers.size();
+        if (!onlineusers.empty() && onlineusers[n - 1].select) {
+            AllBook allBook;
+            onlineusers[n-1].bookInf=allBook.findInf(onlineusers[n-1].index);
+        }
     }
 
     //修改密码passwd [User-ID] ([Old-Password])? [New-Password]
@@ -199,13 +204,13 @@ public:
                 std::cout << '\n';
                 return;
             }
-            std::vector<BookInf> book;
+            std::vector<BookInf> bookss;
             for (int i = 0; i < index.size(); i++) {
-                book.push_back(books.findInf(index[i]));
+                bookss.push_back(books.findInf(index[i]));
             }
-            sort(book.begin(), book.end());
-            for (int i = 0; i < book.size(); i++) {
-                cout << book[i];
+            sort(bookss.begin(), bookss.end());
+            for (int i = 0; i < bookss.size(); i++) {
+                cout << bookss[i];
             }
         }
     }
@@ -310,7 +315,7 @@ public:
         } else {
             bookInf = allBook.findInf(index[0]);//找到图书
             num = index[0];
-            for(int i=0;i<3;i++) {
+            for (int i = 0; i < 3; i++) {
                 logStack.exist[i] = true;
             }
         }
@@ -322,7 +327,7 @@ public:
 
     //修改图书modify (-ISBN=[ISBN] | -name="[Book-Name]" | -author="[Author]" | -keyword="[Keyword]" | -price=[Price])+
     void Modify(std::vector<std::string> &words) override {
-        if(onlineusers.empty())throw MyError();
+        if (onlineusers.empty())throw MyError();
         LogStack logStack;
         AllBook allBook;
         logStack = onlineusers.back();
