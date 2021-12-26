@@ -9,12 +9,14 @@
 #include <algorithm>
 #include <unistd.h>
 #include "error.hpp"
+#include <iomanip>
 
 #define MAXSIZE 300
 
 
 using namespace std;
 
+class AllBook;
 //第一个索引 ISBN->map
 struct BookInfISBN {
     char index[21];//ISBN
@@ -24,6 +26,7 @@ struct BookInfISBN {
         strcpy(index, index_.c_str());
         value = value_;
     }
+
     friend bool operator<(const BookInfISBN &lhs, const BookInfISBN &rhs) {
         return string(lhs.index) < string(rhs.index);
     }
@@ -88,6 +91,82 @@ struct BookInfoIndex {
     }
 };
 
+/*图书信息*/
+struct BookInf {
+    char ISBN[21] = "";
+    char book_name[61] = "";
+    char author[61] = "";
+    char keyword[61] = "";
+    int quantity = 0;
+    float price = 0;
+
+
+    void Initialize(string book_name_, string author_, string keyword_, string price) {
+        strcpy(book_name, book_name_.c_str());
+        strcpy(author, author_.c_str());
+        strcpy(keyword, keyword_.c_str());
+        price = stof(price);
+    }
+
+    friend ostream &operator<<(ostream &os, const BookInf &inf) {
+        os << inf.ISBN << '\t' << inf.book_name << '\t' << inf.author << '\t'
+           << inf.keyword << '\t';
+        os << fixed << setprecision(2) << inf.price << '\t';
+        os << inf.quantity << '\n';
+        return os;
+    }
+
+    friend bool operator<(BookInf &lhs, BookInf &rhs) {
+        return string(lhs.ISBN) < string(rhs.ISBN);
+    }
+};
+
+//总数据库
+class AllBook {
+private:
+    BookInf books;
+    string filename;
+    fstream bookfile;
+    int n;
+public:
+    AllBook() {
+        bookfile.open("allbooks");
+        if (!bookfile) {
+            bookfile.open("allbooks", ios_base::out);
+            n = 0;
+            bookfile.close();
+            bookfile.open("allbooks");
+            bookfile.write(reinterpret_cast<char *>(&n), sizeof(n));
+        }
+    }
+
+    ~AllBook() {
+        bookfile.close();
+    }
+
+    BookInf findInf(int &num) {
+        bookfile.seekg((num - 1) * sizeof(BookInf) + sizeof(int));
+        bookfile.read(reinterpret_cast<char *>(&books), sizeof(BookInf));
+        return books;
+    }
+
+    int InsertInf(BookInf &books_) {
+        bookfile.seekg(0);
+        bookfile.read(reinterpret_cast<char *>(&n), sizeof(int));
+        n += 1;
+        bookfile.seekg(0);
+        bookfile.write(reinterpret_cast<char *>(&n), sizeof(int));
+        bookfile.seekg((n - 1) * sizeof(BookInf) + sizeof(int));
+        bookfile.write(reinterpret_cast<char *>(&books_), sizeof(BookInf));
+        return n;
+    }
+
+    void CoverInf(BookInf &books_, int index) {
+        bookfile.seekg((index - 1) * sizeof(BookInf) + sizeof(int));
+        bookfile.write(reinterpret_cast<char *>(&books_), sizeof(BookInf));
+    }
+};
+
 template<class T>
 struct IndexBase {
     int next = 0;
@@ -108,9 +187,9 @@ public:
         file_catalogue.open(catalogue_name);
     }
 
-    Ull()=default;
+    Ull() = default;
 
-    void Initailize(string catalogue_name_){
+    void Initailize(string catalogue_name_) {
         catalogue_name = catalogue_name_;
         file_catalogue.open(catalogue_name);
     }
@@ -280,15 +359,14 @@ public:
         if (!file_catalogue)return;
         int n;
         file_catalogue.read(reinterpret_cast<char *>(&n), sizeof(int));
-        cout << n << endl;
+        AllBook allBook;
+        int location;
         while (true) {
             file_catalogue.read(reinterpret_cast<char *>(&indexbase), sizeof(IndexBase<T>));
-            cout << indexbase.next << " " << indexbase.size << " ";
-            cout << endl;
             for (int i = 0; i < indexbase.size; i++) {
-                cout << string(indexbase.node[i].index) << " " << indexbase.node[i].value << ' ';
+                location=indexbase.node[i].value;
+                cout<<allBook.findInf(location);
             }
-            cout << endl;
             if (indexbase.next == 0)break;
             file_catalogue.seekg(sizeof(int) + indexbase.next * sizeof(IndexBase<T>), ios::beg);
         }
@@ -297,78 +375,6 @@ public:
 
 };
 
-/*图书信息*/
-struct BookInf {
-    char ISBN[21] = "";
-    char book_name[61] = "";
-    char author[61] = "";
-    char keyword[61] = "";
-    int quantity = 0;
-    float price = 0;
-
-
-    void Initialize(string book_name_,string author_,string keyword_,string price){
-        strcpy(book_name,book_name_.c_str());
-        strcpy(author,author_.c_str());
-        strcpy(keyword,keyword_.c_str());
-        price=stof(price);
-    }
-    friend ostream &operator<<(ostream &os, const BookInf &inf) {
-        os << inf.ISBN << '\t' << inf.book_name << '\t' << inf.author << '\t'
-           << inf.keyword << '\t' << inf.price << '\t' << inf.quantity << '\n';
-        return os;
-    }
-
-    friend bool operator<(BookInf &lhs,BookInf &rhs){
-        return string(lhs.ISBN)<string(rhs.ISBN);
-    }
-};
-
-//总数据库
-class AllBook {
-private:
-    BookInf books;
-    string filename;
-    fstream bookfile;
-    int n;
-public:
-    AllBook() {
-        bookfile.open("allbooks");
-        if (!bookfile) {
-            bookfile.open("allbooks", ios_base::out);
-            n = 0;
-            bookfile.close();
-            bookfile.open("allbooks");
-            bookfile.write(reinterpret_cast<char *>(&n), sizeof(n));
-        }
-    }
-
-    ~AllBook() {
-        bookfile.close();
-    }
-
-    BookInf findInf(int &num) {
-        bookfile.seekg((num - 1) * sizeof(BookInf) + sizeof(int));
-        bookfile.read(reinterpret_cast<char *>(&books), sizeof(BookInf));
-        return books;
-    }
-
-    int InsertInf(BookInf &books_) {
-        bookfile.seekg(0);
-        bookfile.read(reinterpret_cast<char *>(&n), sizeof(int));
-        n += 1;
-        bookfile.seekg(0);
-        bookfile.write(reinterpret_cast<char *>(&n), sizeof(int));
-        bookfile.seekg((n - 1) * sizeof(BookInf) + sizeof(int));
-        bookfile.write(reinterpret_cast<char *>(&books_), sizeof(BookInf));
-        return n;
-    }
-
-    void CoverInf(BookInf &books_,int index){
-        bookfile.seekg((index-1)* sizeof(BookInf)+ sizeof(int));
-        bookfile.write(reinterpret_cast<char *>(&books_), sizeof(BookInf));
-    }
-};
 
 
 

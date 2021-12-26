@@ -1,5 +1,6 @@
 #ifndef BOOKSTORE_DATABASEDIARY_HPP
 #define BOOKSTORE_DATABASEDIARY_HPP
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -8,50 +9,56 @@
 #include <algorithm>
 #include <unistd.h>
 #include "error.hpp"
+
 //记录财务信息
-class FinanceRecord{
+class FinanceRecord {
 private:
     int time;
-    int *money;
-    int deal;
+    float *money;
+    float deal;
     fstream financeFile;
 public:
-    FinanceRecord(){
+    FinanceRecord() {
         financeFile.open("FinanceFile");
-        if(!financeFile){
-            financeFile.open("FinanceFile",ios_base::out);
+        if (!financeFile) {
+            financeFile.open("FinanceFile", ios_base::out);
             financeFile.close();
             financeFile.open("FinanceFile");
             financeFile.seekg(0);
-            time=0;
+            time = 0;
             financeFile.write(reinterpret_cast<char *>(&time), sizeof(int));
         }
     }
 
-    int *totalFinance(int time_){
+    float* totalFinance(int time_) {
         financeFile.seekg(0);
         financeFile.read(reinterpret_cast<char *>(&time), sizeof(int));
-        if(time_>time)throw MyError();
-        money=new int [time];//todo 记得delete
-        financeFile.read(reinterpret_cast<char *>(&money), time*sizeof(int));
+        if (time_ > time)throw MyError();
+        money = new float[time_];//todo 记得delete
+        financeFile.seekg(sizeof(int)+(time-time_)*sizeof(float));
+        financeFile.read(reinterpret_cast<char *>(money), time_ * sizeof(float));
         return money;
     }
 
-    int totalTime(){
+    int totalTime() {
         financeFile.seekg(0);
         financeFile.read(reinterpret_cast<char *>(&time), sizeof(int));
         return time;
     }
-    void addNewFiance(int money){
+
+    void addNewFiance(float money_) {
         financeFile.seekg(0);
         financeFile.read(reinterpret_cast<char *>(&time), sizeof(int));
-        deal=money;
-        financeFile.seekg(sizeof(int)+time* sizeof(int));
-        financeFile.write(reinterpret_cast<char *>(&deal), sizeof(int));
+        deal = money_;
+        financeFile.seekg(sizeof(int) + time * sizeof(float));
+        financeFile.write(reinterpret_cast<char *>(&deal), sizeof(float));
+        time++;
+        financeFile.seekg(0);
+        financeFile.write(reinterpret_cast<char *>(&time), sizeof(int));
     }
 };
 
-class StuffOperat{
+/*class StuffOperat{
 
 };
 
@@ -65,5 +72,5 @@ struct Operat{
 };
 class StuffDatabase{
 
-};
+};*/
 #endif //BOOKSTORE_DATABASEDIARY_HPP

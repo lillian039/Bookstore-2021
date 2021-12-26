@@ -9,22 +9,20 @@
 #include "statement.hpp"
 
 //解构输入的命令行
-vector<string> parser(std::string commandLine) {
-    vector<string> words;
-    string word = "";
-    for (int i = 0; i < commandLine.size(); i++) {
+std::vector<std::string> parser(std::string commandLine) {
+    std::vector<std::string> words;
+    std::string word = "";
+    int max_ = commandLine.size();
+    for (int i = 0; i < max_; i++) {
         if (commandLine[i] == ' ') {
-            i++;
-            while (commandLine[i] == ' ' && i < commandLine.size())i++;
-            if (i == commandLine.size() - 1&&commandLine[i]==' ')break;
+            while(i+1<max_&&commandLine[i+1]==' ')i++;
             words.push_back(word);
-            word = commandLine[i];
-            if(i==commandLine.size()-1)break;
+            word="";
             continue;
         }
         word += commandLine[i];
     }
-    words.push_back(word);
+    if(commandLine[max_-1]!=' ')words.push_back(word);
     return words;
 }
 
@@ -32,11 +30,11 @@ void parseCommand(std::string commandLine, Command *cmd) {
     vector<string> words;
     words = parser(commandLine);
     if (words[0] == "")return;
-    if ((words[0] == "quit" || words[0] == "quit") && words.size() == 1) cmd->exit();
-    else if (words[0] == "show" && words[1] == "finance")cmd->showFinance(words);
-    else if (words[0] == "report" && words[1] == "employee")cmd->reportEmployee(words);
-    else if (words[0] == "report" && words[1] == "finance")cmd->reportFinance(words);
-    else if (words[0] == "report" && words[1] == "myself")cmd->Report(words);
+    if ((words[0] == "exit" || words[0] == "quit") && words.size() == 1) cmd->exit();
+    else if (words.size() > 1 && words[0] == "show" && words[1] == "finance")cmd->showFinance(words);
+    else if (words.size() > 1 && words[0] == "report" && words[1] == "employee")cmd->reportEmployee(words);
+    else if (words.size() > 1 && words[0] == "report" && words[1] == "finance")cmd->reportFinance(words);
+    else if (words.size() > 1 && words[0] == "report" && words[1] == "myself")cmd->Report(words);
     else if (words[0] == "su") cmd->Login(words);
     else if (words[0] == "logout")cmd->Logout(words);
     else if (words[0] == "register")cmd->Register(words);
@@ -50,7 +48,7 @@ void parseCommand(std::string commandLine, Command *cmd) {
     else if (words[0] == "import")cmd->Import(words);
     else if (words[0] == "log")cmd->Log(words);
     else if (words[0] == "")return;
-    else throw (MyError());
+    else throw MyError();
 
 
 }

@@ -55,10 +55,15 @@ void FloatInvalid(std::string &num) {
     for (int i = 0; i < num.size(); i++) {
         if ((num[i] < '0' || num[i] > '9') && num[i] != '.')throw MyError();
         if (num[i] == '.') {
-            if (i + 2 > num.size() - 1)throw MyError();
-            if (num[i + 1] < '0' || num[i + 1] > '9')throw MyError();
-            if (num[i + 2] < '0' || num[i + 2] > '9')throw MyError();
-            return;
+            if (i + 2 == num.size() - 1) {
+                if (num[i + 1] < '0' || num[i + 1] > '9')throw MyError();
+                if (num[i + 2] < '0' || num[i + 2] > '9')throw MyError();
+                return;
+            }
+            else if (i + 1 == num.size() - 1) {
+                if (num[i + 1] < '0' || num[i + 1] > '9')throw MyError();
+                return;
+            }
         }
     }
 }
