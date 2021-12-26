@@ -258,7 +258,7 @@ public:
         userInf = accountInf.FindValue(words[1]);
         LogStack logstack;
         logstack.userInf = userInf;
-        if (userInf.value.Priority < 3) {
+        if (userInf.value.Priority < onlineusers[onlineusers.size()-1].userInf.value.Priority) {
             onlineusers.push_back(logstack);
             return;
         }

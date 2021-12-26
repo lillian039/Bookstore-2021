@@ -36,6 +36,9 @@ std::vector<std::string> ProcessKeyword(const std::string &keyword) {
     for (int i = 0; i <= keyword.size(); i++) {
         if (keyword[i] == '"')throw MyError();
         if (keyword[i] == '|' || i == keyword.size()) {
+            for(int k=0;k<keywords.size();k++){
+                if(keywords[k]==key)throw MyError();
+            }
             keywords.push_back(key);
             key = "";
             continue;
