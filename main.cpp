@@ -2,13 +2,14 @@
 #include "parser.hpp"
 
 int main() {
-/*    freopen("3.txt","r",stdin);
-    freopen("me.out","a",stdout);*/
+  /*  freopen("1.in","r",stdin);
+    freopen("me.out","w",stdout);*/
     string commandLine;
     Command *user;
     while(true){
        try{
            getline(cin,commandLine);
+           /*cout<<commandLine<<endl;*/
            if (cin.eof())std::exit(0);
            user=getSigned();
            parseCommand(commandLine,user);

@@ -125,7 +125,7 @@ public:
 
     //修改密码passwd [User-ID] ([Old-Password])? [New-Password]
     void Passwd(std::vector<std::string> &words) override {
-        if (words.size() > 4 || words[1].size() > 30 || words[2].size() > 30 || words[3].size() > 30)throw MyError();
+        if (words.size() != 4 || words[1].size() > 30 || words[2].size() > 30 || words[3].size() > 30)throw MyError();
         AccountInf accountInf("accountfile");
         UserInf userInf;
         std::string userid = words[1];
@@ -134,11 +134,12 @@ public:
         PasswdInvaild(oldpasswd);
         PasswdInvaild(newpasswd);
         userInf = accountInf.FindValue(userid);
-        if (userInf.value.password == oldpasswd) {
+        if(std::string(userInf.index)=="null")throw MyError();
+        if (string(userInf.value.password) == oldpasswd) {
             strcpy(userInf.value.password, newpasswd.c_str());
             accountInf.DeleteValue(userid);
             accountInf.InsertValue(userInf);
-        } else throw (MyError());
+        } else throw MyError();
     }
 
     //检索图书show (-ISBN=[ISBN] | -name="[Book-Name]" | -author="[Author]" | -keyword="[Keyword]")?
@@ -284,7 +285,7 @@ public:
     //- 新的账户登入 默认为无选中图书状态 但是登出后原先的账户依然保持选中状态 仅能选中一本书
     //文件读写？
     void Select(std::vector<std::string> &words) override {
-        if (words.size() > 2 || onlineusers.empty())throw MyError();
+        if (words.size() != 2 || onlineusers.empty())throw MyError();
         BookInfISBN bookInfIsbn;
         BookInf bookInf;
         bookInfIsbn.Initialize(words[1], 0);
@@ -333,7 +334,7 @@ public:
                 strcpy(bookInfoIndex.index, infom[i + 1].c_str());
                 ull.InsertValue(bookInfoIndex);
             } else if (infom[i] == "-author") {
-                BooknameInvalid(infom[2]);
+                BooknameInvalid(infom[i+1]);
                 BookInfoIndex bookInfoIndex;
                 bookInfoIndex.Initialize(std::string(logStack.bookInf.author), logStack.index);
                 Ull<BookInfoIndex> ull("AuthorCatalogue");

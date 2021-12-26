@@ -146,7 +146,6 @@ public:
                     long long n;
                     n = (lower_bound(indexbase.node, indexbase.node + indexbase.size, database) -
                          indexbase.node);
-                    //???
                     if (string(indexbase.node[n].index) != user_id) {
                         strcpy(database.index, "null");
                         return database;
@@ -193,8 +192,8 @@ public:
                 return;
             }
             index_now = indexbase.next;
-            throw MyError();
         }
+        throw MyError();
     }
 
 
