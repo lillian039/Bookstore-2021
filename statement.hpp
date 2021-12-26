@@ -234,7 +234,7 @@ public:
         int quantity = atoi(words[2].c_str());
         if (book.quantity < quantity)throw MyError();
         book.quantity -= quantity;
-        std::cout << book.price * quantity / 100 << "." << setw(2) << setfill('0') << book.price * quantity % 100
+        std::cout << long(book.price) * quantity / 100 << "." << setw(2) << setfill('0') << long(book.price) * quantity % 100
                   << std::endl;
         books.CoverInf(book, index[0]);
         //财务文件读写
