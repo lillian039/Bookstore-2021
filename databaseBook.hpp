@@ -99,20 +99,20 @@ struct BookInf {
     char author[61] = "";
     char keyword[61] = "";
     int quantity = 0;
-    int price = 0;
+    double price = 0;
 
 
     void Initialize(string book_name_, string author_, string keyword_, string price) {
         strcpy(book_name, book_name_.c_str());
         strcpy(author, author_.c_str());
         strcpy(keyword, keyword_.c_str());
-        price = FloatInvalid(price);
+        price = stod(price);
     }
 
     friend ostream &operator<<(ostream &os, const BookInf &inf) {
         os << inf.ISBN << '\t' << inf.book_name << '\t' << inf.author << '\t'
            << inf.keyword << '\t';
-        os << inf.price/100<<"."<<setw(2)<<setfill('0')<<inf.price%100 << '\t';
+        os << fixed<<setprecision(2)<<inf.price<< '\t';
         os << inf.quantity << '\n';
         return os;
     }

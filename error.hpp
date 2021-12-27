@@ -17,7 +17,7 @@ public:
 };
 
 void PasswdInvaild(std::string &passwd) {
-    if(passwd.size()>30)throw MyError();
+    if (passwd.size() > 30)throw MyError();
     for (int i = 0; i < passwd.size(); i++) {
         if (!('0' <= passwd[i] && passwd[i] <= '9' || 'a' <= passwd[i] && passwd[i] <= 'z' ||
               'A' <= passwd[i] && passwd[i] <= 'Z' || passwd[i] == '_'))
@@ -26,21 +26,21 @@ void PasswdInvaild(std::string &passwd) {
 }
 
 void BooknameInvalid(std::string &bookname) {
-    if(bookname.size()>60)throw MyError();
+    if (bookname.size() > 60)throw MyError();
     for (int i = 0; i < bookname.size(); i++) {
         if (bookname[i] == '"')throw MyError();
     }
 }
 
 std::vector<std::string> ProcessKeyword(const std::string &keyword) {
-    if(keyword.size()>60)throw MyError();
+    if (keyword.size() > 60)throw MyError();
     std::vector<std::string> keywords;
     std::string key = "";
     for (int i = 0; i <= keyword.size(); i++) {
         if (keyword[i] == '"')throw MyError();
         if (keyword[i] == '|' || i == keyword.size()) {
-            for(int k=0;k<keywords.size();k++){
-                if(keywords[k]==key)throw MyError();
+            for (int k = 0; k < keywords.size(); k++) {
+                if (keywords[k] == key)throw MyError();
             }
             keywords.push_back(key);
             key = "";
@@ -52,42 +52,25 @@ std::vector<std::string> ProcessKeyword(const std::string &keyword) {
 }
 
 void IntInvalid(std::string &num) {
-    if(num.size()>10)throw MyError();
+    if (num.size() > 10)throw MyError();
     for (int i = 0; i < num.size(); i++) {
         if (num[i] < '0' || num[i] > '9')throw MyError();
     }
 }
 
-void PriorityInvalid(std::string &num){
-    if(num.size()!=1)throw MyError();
-    if(num[0]!='1'&&num[0]!='3')throw MyError();
+void PriorityInvalid(std::string &num) {
+    if (num.size() != 1)throw MyError();
+    if (num[0] != '1' && num[0] != '3')throw MyError();
 }
 
-int FloatInvalid(std::string &num) {
-    int sum=0;
+void FloatInvalid(std::string &num) {
+    int sum = 0;
+    bool flag = false;
     for (int i = 0; i < num.size(); i++) {
         if ((num[i] < '0' || num[i] > '9') && num[i] != '.')throw MyError();
-        if (num[i] == '.') {
-            if (i + 2 == num.size() - 1) {
-                if (num[i + 1] < '0' || num[i + 1] > '9')throw MyError();
-                sum+=num[i+1]-'0';
-                sum*=10;
-                if (num[i + 2] < '0' || num[i + 2] > '9')throw MyError();
-                sum+=num[i+2]-'0';
-                return sum;
-            }
-            else if (i + 1 == num.size() - 1) {
-                if (num[i + 1] < '0' || num[i + 1] > '9')throw MyError();
-                sum+=num[i+1]-'0';
-                sum*=10;
-                return sum;
-            }
-        }
-        sum+=num[i]-'0';
-        sum*=10;
+        if (num[i] == '.' && flag)throw MyError();
+        if (num[i] == '.') flag = true;
     }
-    sum*=10;
-    return sum;
 }
 
 //修改图书modify (-ISBN=[ISBN] | -name="[Book-Name]" | -author="[Author]" | -keyword="[Keyword]" | -price=[Price])+

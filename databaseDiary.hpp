@@ -14,8 +14,8 @@
 class FinanceRecord {
 private:
     int time;
-    int *money;
-    int deal;
+    double *money;
+    double deal;
     fstream financeFile;
 public:
     FinanceRecord() {
@@ -30,13 +30,13 @@ public:
         }
     }
 
-    int* totalFinance(int time_) {
+    double * totalFinance(int time_) {
         financeFile.seekg(0);
         financeFile.read(reinterpret_cast<char *>(&time), sizeof(int));
         if (time_ > time)throw MyError();
-        money = new int[time_];//todo 记得delete
-        financeFile.seekg(sizeof(int)+(time-time_)*sizeof(int));
-        financeFile.read(reinterpret_cast<char *>(money), time_ * sizeof(int));
+        money = new double[time_];//todo 记得delete
+        financeFile.seekg(sizeof(int)+(time-time_)*sizeof(double));
+        financeFile.read(reinterpret_cast<char *>(money), time_ * sizeof(double));
         return money;
     }
 
@@ -46,15 +46,15 @@ public:
         return time;
     }
 
-    void addNewFiance(int money_) {
+    void addNewFiance(double money_) {
         financeFile.seekg(0);
         financeFile.read(reinterpret_cast<char *>(&time), sizeof(int));
         deal = money_;
-        financeFile.seekg(sizeof(int) + time * sizeof(int));
-        financeFile.write(reinterpret_cast<char *>(&deal), sizeof(int));
+        financeFile.seekg(sizeof(int) + time * sizeof(double ));
+        financeFile.write(reinterpret_cast<char *>(&deal), sizeof(double));
         time++;
         financeFile.seekg(0);
-        financeFile.write(reinterpret_cast<char *>(&time), sizeof(int));
+        financeFile.write(reinterpret_cast<char *>(&time), sizeof(double));
     }
 };
 

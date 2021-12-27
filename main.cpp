@@ -2,7 +2,7 @@
 #include "parser.hpp"
 
 int main() {
-  /*  freopen("test.in","r",stdin);
+/*   freopen("9.in","r",stdin);
     freopen("me.out","w",stdout);*/
     string commandLine;
     Command *user;

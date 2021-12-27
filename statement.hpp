@@ -7,6 +7,7 @@
 #include "error.hpp"
 #include <cstdio>
 #include <iomanip>
+#include <cmath>
 
 //todo 全局变量选中图书
 //todo 登录栈 全局队列
@@ -234,12 +235,10 @@ public:
         int quantity = atoi(words[2].c_str());
         if (book.quantity < quantity)throw MyError();
         book.quantity -= quantity;
-        std::cout << long(book.price) * quantity / 100 << "." << setw(2) << setfill('0')
-                  << long(book.price) * quantity % 100//todo may cause problem
-                  << std::endl;
+        std::cout << fixed<<setprecision(2)<<(book.price) * quantity <<'\n';
         books.CoverInf(book, index[0]);
         //财务文件读写
-        int deal = book.price * quantity;
+        double deal = book.price * quantity;
         FinanceRecord financeRecord;
         financeRecord.addNewFiance(deal);
     }
@@ -384,7 +383,7 @@ public:
                 onlineusers[onlineusers.size() - 1].exist[2] = true;
                 strcpy(logStack.bookInf.keyword, infom[i + 1].c_str());
             } else if (infom[i] == "-ISBN") {
-                if(infom[i+1].size()>20)throw MyError();
+                if (infom[i + 1].size() > 20)throw MyError();
                 BookInfISBN bookInfIsbn;//修改索引ISBN
                 BookInfISBN tmp;
                 tmp.Initialize(infom[i + 1], 0);
@@ -396,7 +395,8 @@ public:
                 strcpy(bookInfIsbn.index, infom[i + 1].c_str());
                 ull.InsertValue(bookInfIsbn);
             } else if (infom[i] == "-price") {
-                logStack.bookInf.price = FloatInvalid(infom[i + 1]);
+                FloatInvalid(infom[i + 1]);
+                logStack.bookInf.price = stod(infom[i + 1]);
             } else if (infom[i] == "-quantity") {
                 IntInvalid(infom[i + 1]);
                 logStack.bookInf.quantity = atoi(infom[i + 1].c_str());
@@ -420,7 +420,7 @@ public:
         logStack.bookInf.quantity += import_quantity;
         allBook.CoverInf(logStack.bookInf, logStack.index);
         FinanceRecord financeRecord;
-        int totalcost = FloatInvalid(words[2]) * (-1);//添加财务信息
+        double totalcost = stod(words[2]) * (-1);//添加财务信息
         financeRecord.addNewFiance(totalcost);
         onlineusers[onlineusers.size() - 1].bookInf = logStack.bookInf;
     }
@@ -480,9 +480,9 @@ public:
     //财务记录查询show finance ([Time])?
     void showFinance(vector<std::string> &words) override {
         int time;
-        int *finance;
-        int sum_plus = 0;
-        int sum_minus = 0;
+        double *finance;
+        double sum_plus = 0;
+        double sum_minus = 0;
         FinanceRecord financeRecord;
         if (words.size() == 3) {
             IntInvalid(words[2]);
@@ -499,8 +499,8 @@ public:
             if (finance[i] < 0)sum_minus += finance[i];
             else if (finance[i] > 0)sum_plus += (finance[i]);
         }
-        std::cout << "+ " << sum_plus / 100 << "." << setw(2) << setfill('0') << sum_plus % 100;
-        std::cout << " - " << (-1) * sum_minus / 100 << "." << setw(2) << setfill('0') << (-1) * sum_minus % 100
+        std::cout << "+ " << fixed << setprecision(2) << sum_plus;
+        std::cout << " - " << fixed << setprecision(2) << fabs(sum_minus)
                   << '\n';
         delete[]finance;
     }
