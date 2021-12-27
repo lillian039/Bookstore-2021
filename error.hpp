@@ -17,6 +17,7 @@ public:
 };
 
 void PasswdInvaild(std::string &passwd) {
+    if(passwd.size()>30)throw MyError();
     for (int i = 0; i < passwd.size(); i++) {
         if (!('0' <= passwd[i] && passwd[i] <= '9' || 'a' <= passwd[i] && passwd[i] <= 'z' ||
               'A' <= passwd[i] && passwd[i] <= 'Z' || passwd[i] == '_'))
@@ -25,12 +26,14 @@ void PasswdInvaild(std::string &passwd) {
 }
 
 void BooknameInvalid(std::string &bookname) {
+    if(bookname.size()>60)throw MyError();
     for (int i = 0; i < bookname.size(); i++) {
         if (bookname[i] == '"')throw MyError();
     }
 }
 
 std::vector<std::string> ProcessKeyword(const std::string &keyword) {
+    if(keyword.size()>60)throw MyError();
     std::vector<std::string> keywords;
     std::string key = "";
     for (int i = 0; i <= keyword.size(); i++) {
@@ -49,6 +52,7 @@ std::vector<std::string> ProcessKeyword(const std::string &keyword) {
 }
 
 void IntInvalid(std::string &num) {
+    if(num.size()>10)throw MyError();
     for (int i = 0; i < num.size(); i++) {
         if (num[i] < '0' || num[i] > '9')throw MyError();
     }

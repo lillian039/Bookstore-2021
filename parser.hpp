@@ -23,6 +23,7 @@ std::vector<std::string> parser(std::string commandLine) {
         word += commandLine[i];
     }
     if(commandLine[max_-1]!=' ')words.push_back(word);
+/*    if(words.empty())words.push_back(word);*/
     return words;
 }
 
@@ -47,7 +48,6 @@ void parseCommand(std::string commandLine, Command *cmd) {
     else if (words[0] == "modify")cmd->Modify(words);
     else if (words[0] == "import")cmd->Import(words);
     else if (words[0] == "log")cmd->Log(words);
-    else if (words[0] == "")return;
     else throw MyError();
 
 
