@@ -112,7 +112,7 @@ struct BookInf {
     friend ostream &operator<<(ostream &os, const BookInf &inf) {
         os << inf.ISBN << '\t' << inf.book_name << '\t' << inf.author << '\t'
            << inf.keyword << '\t';
-        os << fixed<<setprecision(2)<<inf.price<< '\t';
+        os << fixed << setprecision(2) << inf.price << '\t';
         os << inf.quantity << '\n';
         return os;
     }

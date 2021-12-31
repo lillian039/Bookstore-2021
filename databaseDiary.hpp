@@ -31,12 +31,12 @@ public:
         }
     }
 
-    double * totalFinance(int time_) {
+    double *totalFinance(int time_) {
         financeFile.seekg(0);
         financeFile.read(reinterpret_cast<char *>(&time), sizeof(int));
         if (time_ > time)throw MyError();
         money = new double[time_];//todo 记得delete
-        financeFile.seekg(sizeof(int)+(time-time_)*sizeof(double));
+        financeFile.seekg(sizeof(int) + (time - time_) * sizeof(double));
         financeFile.read(reinterpret_cast<char *>(money), time_ * sizeof(double));
         return money;
     }
@@ -51,7 +51,7 @@ public:
         financeFile.seekg(0);
         financeFile.read(reinterpret_cast<char *>(&time), sizeof(int));
         deal = money_;
-        financeFile.seekg(sizeof(int) + time * sizeof(double ));
+        financeFile.seekg(sizeof(int) + time * sizeof(double));
         financeFile.write(reinterpret_cast<char *>(&deal), sizeof(double));
         time++;
         financeFile.seekg(0);
@@ -62,7 +62,8 @@ public:
 struct StuffIndex {
     char index[31];
     int value;
-    StuffIndex()=default;
+
+    StuffIndex() = default;
 
     friend bool operator<(const StuffIndex &lhs, const StuffIndex &rhs) {
         return string(lhs.index) < string(rhs.index);
@@ -82,18 +83,15 @@ struct StuffIndex {
 
 };
 
-
-struct Operat{
+struct Operat {
     char operate[1026];//单条指令长达1025
-    
-    Operat(std::string &cmd){
-        strcpy(operate,cmd.c_str());
+
+    Operat(std::string &cmd) {
+        strcpy(operate, cmd.c_str());
     }
-    
-    Operat()=default;
+
+    Operat() = default;
 };
-
-
 
 class StuffDatabase {
 private:
@@ -135,4 +133,49 @@ public:
     }
 
 };
+
+class MyDearStuffs {
+private:
+    char StuffName[31];
+    fstream stufffile;
+    int n;
+public:
+    MyDearStuffs() {
+        stufffile.open("MyStuffs");
+        if (!stufffile) {
+            stufffile.open("MyStuffs", ios_base::out);
+            n = 0;
+            stufffile.close();
+            stufffile.open("MyStuffs");
+            stufffile.write(reinterpret_cast<char *>(&n), sizeof(n));
+        }
+    }
+
+    ~MyDearStuffs() {
+        stufffile.close();
+    }
+
+    vector<string> findAllMyStuffs(){
+            vector<string>stuffs;
+            stufffile.seekg(0);
+            stufffile.read(reinterpret_cast<char *>(&n), sizeof(int));
+            for(int i=0;i<n;i++){
+                stufffile.read(reinterpret_cast<char *>(&StuffName), sizeof(char)*31);
+                stuffs.push_back(string(StuffName));
+            }
+            return stuffs;
+    }
+
+    void InsertInf(string & name) {
+        strcpy(StuffName,name.c_str());
+        stufffile.seekg(0);
+        stufffile.read(reinterpret_cast<char *>(&n), sizeof(int));
+        n += 1;
+        stufffile.seekg(0);
+        stufffile.write(reinterpret_cast<char *>(&n), sizeof(int));
+        stufffile.seekg((n - 1) * sizeof(char)*31 + sizeof(int));
+        stufffile.write(reinterpret_cast<char *>(&StuffName), sizeof(char)*31);
+    }
+};
+
 #endif //BOOKSTORE_DATABASEDIARY_HPP

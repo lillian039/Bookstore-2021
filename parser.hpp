@@ -79,7 +79,9 @@ Command *getSigned(std::string &commandline) {//读取登录栈
         p = new Staff;
         addStuffCmd(commandline);
     }
-    if (usernow.userInf.value.Priority == 7)p = new Shopkeeper;
+    if (usernow.userInf.value.Priority == 7) {
+        p = new Shopkeeper;
+        addStuffCmd(commandline);}
     return p;
 }
 

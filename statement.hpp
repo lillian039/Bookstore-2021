@@ -276,13 +276,19 @@ public:
     //-如果待创建账户的权限等级大于等于当前账户权限等级则操作失败
     void Useradd(std::vector<std::string> &words) override {
         if (words.size() != 5)throw MyError();
+        if (onlineusers.empty())throw MyError();
         PasswdInvaild(words[1]);
         PasswdInvaild(words[2]);
         PriorityInvalid(words[3]);
         std::string userid = words[1];
         std::string passwd = words[2];
         int priority = atoi(words[3].c_str());
+        if (priority >= onlineusers[onlineusers.size() - 1].userInf.value.Priority)throw MyError();
         std::string username = words[4];
+        if (priority == 3) {
+            MyDearStuffs myDearStuffs;
+            myDearStuffs.InsertInf(userid);
+        }
         UserInfValue userInfValue(passwd, username, priority);
         UserInf userInf(userid, userInfValue);
         AccountInf accountInf("accountfile");
@@ -428,21 +434,33 @@ public:
 //*生成员工操作记录report myself
     void Report(std::vector<std::string> &words) override {
         if (words.size() != 2 || words[1] != "myself")throw MyError();
-        std::cout << "My name is "<<onlineusers[onlineusers.size()-1].userInf.index<<" and here is my self report: \n";
+        if (onlineusers[onlineusers.size() - 1].userInf.value.Priority == 3)
+            std::cout << "My ID is " << onlineusers[onlineusers.size() - 1].userInf.index
+                      << " and here is my self report: \n";
+        if (onlineusers[onlineusers.size() - 1].userInf.value.Priority == 7)
+            std::cout << "I am the supreme boss " << onlineusers[onlineusers.size() - 1].userInf.index
+                      << " and here is my wise operations: \n";
         Operat operats;
         std::vector<int> locations;
         StuffDatabase stuffDatabase;
         Ull<StuffIndex> ull("StuffCalalogue");
         StuffIndex stuffIndex;
-        strcpy(stuffIndex.index,onlineusers[onlineusers.size()-1].userInf.index);
-        stuffIndex.value=0;
-        locations=ull.FindValue(stuffIndex);
-        if(locations.size()==0) { std::cout << "Oh no boss I have been touching fish for a whole day quq\n";return; }
-        for(int i=0;i<locations.size();i++){
-            operats=stuffDatabase.findInf(locations[i]);
-            std::cout<<'\t'<<std::string(operats.operate)<<'\n';
+        strcpy(stuffIndex.index, onlineusers[onlineusers.size() - 1].userInf.index);
+        stuffIndex.value = 0;
+        locations = ull.FindValue(stuffIndex);
+        if (locations.size() == 0) {
+            if (onlineusers[onlineusers.size() - 1].userInf.value.Priority == 3)
+                std::cout << "Oh no boss I have been touching fish for a whole day quq\n\n";
+            return;
         }
-        std::cout<<"Hey boss I have been working hard, please raise my salary quq\n";
+        for (int i = 0; i < locations.size(); i++) {
+            operats = stuffDatabase.findInf(locations[i]);
+            std::cout << '\t' << std::string(operats.operate) << '\n';
+        }
+        if (onlineusers[onlineusers.size() - 1].userInf.value.Priority == 3)
+            std::cout << "Hey boss I have been working hard, please raise my salary quq\n\n";
+        else if (onlineusers[onlineusers.size() - 1].userInf.value.Priority == 7)
+            std::cout << "Running this bookstore is not easy....quqqq\n\n";
     }
 
 
@@ -542,11 +560,36 @@ public:
     //*生成全体员工工作情况报告report employee
     void reportEmployee(vector<std::string> &words) override {
         if (words.size() != 2)throw MyError();
+        std::vector<std::string> stuffs;
+        MyDearStuffs myDearStuffs;
+        stuffs = myDearStuffs.findAllMyStuffs();
+        LogStack stuff;
+        std::vector<std::string> word;
+        word.push_back("report");
+        word.push_back("myself");
+        for (int i = 0; i < stuffs.size(); i++) {
+            strcpy(stuff.userInf.index, stuffs[i].c_str());
+            onlineusers.push_back(stuff);
+            Report(word);
+            onlineusers.pop_back();
+        }
+
     }
     //*生成日志log
     /*对于该函数的实现有文件输出格式要求，详见四、3中关于文件的说明*/
     void Log(vector<std::string> &words) override {
-        if (words.size() != 2)throw MyError();
+        if (words.size() != 1)throw MyError();
+        std::vector<std::string> word;
+        word.push_back("report");
+        word.push_back("myself");
+        std::cout << "My Bookstore Diary:\n\n";
+        std::cout << "Here is my operations:\n";
+        Staff::Report(word);
+        std::cout << "Here is my finance report:\n";
+        reportFinance(word);
+        std::cout << "\nHere is my employee's report:\n";
+        reportEmployee(word);
+        std::cout<<"THE END\n\n";
     }
 
 
