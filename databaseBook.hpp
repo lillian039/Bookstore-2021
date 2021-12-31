@@ -13,9 +13,6 @@
 
 #define MAXSIZE 100
 
-
-using namespace std;
-
 class AllBook;
 
 //第一个索引 ISBN->map
@@ -23,25 +20,25 @@ struct BookInfISBN {
     char index[21];//ISBN
     int value;
 
-    void Initialize(string index_, int value_) {
+    void Initialize(std::string index_, int value_) {
         strcpy(index, index_.c_str());
         value = value_;
     }
 
     friend bool operator<(const BookInfISBN &lhs, const BookInfISBN &rhs) {
-        return string(lhs.index) < string(rhs.index);
+        return std::string(lhs.index) < std::string(rhs.index);
     }
 
     friend bool operator>(const BookInfISBN &lhs, const BookInfISBN &rhs) {
-        return string(lhs.index) > string(rhs.index);
+        return std::string(lhs.index) > std::string(rhs.index);
     }
 
     friend bool operator>=(const BookInfISBN &lhs, const BookInfISBN &rhs) {
-        return string(lhs.index) >= string(rhs.index);
+        return std::string(lhs.index) >= std::string(rhs.index);
     }
 
     friend bool operator<=(const BookInfISBN &lhs, const BookInfISBN &rhs) {
-        return string(lhs.index) <= string(rhs.index);
+        return std::string(lhs.index) <= std::string(rhs.index);
     }
 
 };
@@ -53,40 +50,40 @@ struct BookInfoIndex {
     char index[61];
     int value;
 
-    void Initialize(string index_, int value_) {
+    void Initialize(std::string index_, int value_) {
         strcpy(index, index_.c_str());
         value = value_;
     }
 
     friend bool operator<(const BookInfoIndex &lhs, const BookInfoIndex &rhs) {
-        if (string(lhs.index) < string(rhs.index))return true;
-        if (string(lhs.index) > string(rhs.index))return false;
+        if (std::string(lhs.index) < std::string(rhs.index))return true;
+        if (std::string(lhs.index) > std::string(rhs.index))return false;
         if (lhs.value < rhs.value)return true;
         return false;
     }
 
     friend bool operator>(const BookInfoIndex &lhs, const BookInfoIndex &rhs) {
-        if (string(lhs.index) > string(rhs.index))return true;
-        if (string(lhs.index) < string(rhs.index))return false;
+        if (std::string(lhs.index) > std::string(rhs.index))return true;
+        if (std::string(lhs.index) < std::string(rhs.index))return false;
         if (lhs.value > rhs.value)return true;
         return false;
     }
 
     bool operator<=(const BookInfoIndex &rhs) {
-        if (string(index) < string(rhs.index))return true;
-        if (string(index) == string(rhs.index) && value <= rhs.value)return true;
+        if (std::string(index) < std::string(rhs.index))return true;
+        if (std::string(index) == std::string(rhs.index) && value <= rhs.value)return true;
         return false;
     }
 
     bool operator>=(const BookInfoIndex &rhs) {
-        if (string(index) > string(rhs.index))return true;
-        if (string(index) == string(rhs.index) && value >= rhs.value)return true;
+        if (std::string(index) > std::string(rhs.index))return true;
+        if (std::string(index) == std::string(rhs.index) && value >= rhs.value)return true;
         return false;
     }
 
     bool operator>(const BookInfoIndex &rhs) {
-        if (string(index) > string(rhs.index))return true;
-        if (string(index) < string(rhs.index))return false;
+        if (std::string(index) > std::string(rhs.index))return true;
+        if (std::string(index) < std::string(rhs.index))return false;
         if (value > rhs.value)return true;
         return false;
     }
@@ -102,23 +99,23 @@ struct BookInf {
     double price = 0;
 
 
-    void Initialize(string book_name_, string author_, string keyword_, string price) {
+    void Initialize(std::string book_name_, std::string author_, std::string keyword_, std::string price) {
         strcpy(book_name, book_name_.c_str());
         strcpy(author, author_.c_str());
         strcpy(keyword, keyword_.c_str());
         price = stod(price);
     }
 
-    friend ostream &operator<<(ostream &os, const BookInf &inf) {
+    friend std::ostream &operator<<(std::ostream &os, const BookInf &inf) {
         os << inf.ISBN << '\t' << inf.book_name << '\t' << inf.author << '\t'
            << inf.keyword << '\t';
-        os << fixed << setprecision(2) << inf.price << '\t';
+        os << std::fixed << std::setprecision(2) << inf.price << '\t';
         os << inf.quantity << '\n';
         return os;
     }
 
     friend bool operator<(BookInf &lhs, BookInf &rhs) {
-        return string(lhs.ISBN) < string(rhs.ISBN);
+        return std::string(lhs.ISBN) < std::string(rhs.ISBN);
     }
 };
 
@@ -126,14 +123,14 @@ struct BookInf {
 class AllBook {
 private:
     BookInf books;
-    string filename;
-    fstream bookfile;
+    std::string filename;
+    std::fstream bookfile;
     int n;
 public:
     AllBook() {
         bookfile.open("allbooks");
         if (!bookfile) {
-            bookfile.open("allbooks", ios_base::out);
+            bookfile.open("allbooks", std::ios_base::out);
             n = 0;
             bookfile.close();
             bookfile.open("allbooks");
@@ -180,17 +177,17 @@ class Ull {
 private:
     IndexBase<T> indexbase;
     T database;
-    fstream file_catalogue;
-    string catalogue_name;
+    std::fstream file_catalogue;
+    std::string catalogue_name;
 public:
-    Ull(string catalogue_name_) {
+    Ull(std::string catalogue_name_) {
         catalogue_name = catalogue_name_;
         file_catalogue.open(catalogue_name);
     }
 
     Ull() = default;
 
-    void Initailize(string catalogue_name_) {
+    void Initailize(std::string catalogue_name_) {
         catalogue_name = catalogue_name_;
         file_catalogue.open(catalogue_name);
     }
@@ -205,7 +202,7 @@ public:
     }
 
     void InsertValue(T &database_) {
-        file_catalogue.seekg(0, ios::beg);
+        file_catalogue.seekg(0, std::ios::beg);
         if (!file_catalogue)InitializeFirstOpen();//
         database = database_;
         int catalogue_rear;//共有几个块
@@ -215,16 +212,16 @@ public:
             InitializeNoneBlock(catalogue_rear);
             return;
         } else {
-            file_catalogue.seekg(sizeof(int), ios::beg);
+            file_catalogue.seekg(sizeof(int), std::ios::beg);
             indexbase.next = 1;
             while (indexbase.next != 0) {
-                file_catalogue.seekg(index_now * sizeof(IndexBase<T>) + sizeof(int), ios::beg);
+                file_catalogue.seekg(index_now * sizeof(IndexBase<T>) + sizeof(int), std::ios::beg);
                 file_catalogue.read(reinterpret_cast<char *>(&indexbase), sizeof(IndexBase<T>));
                 if (database <= indexbase.node[indexbase.size - 1] ||
                     indexbase.next == 0) {
                     indexbase.node[indexbase.size] = database;
                     long long n;
-                    n = (upper_bound(indexbase.node, indexbase.node + indexbase.size, database, compare) -
+                    n = (std::upper_bound(indexbase.node, indexbase.node + indexbase.size, database, compare) -
                          indexbase.node);
                     for (int i = indexbase.size; i > n; i--) {
                         indexbase.node[i] = indexbase.node[i - 1];
@@ -237,15 +234,15 @@ public:
             }
             if (indexbase.size == MAXSIZE)splitBlock(catalogue_rear);
         }
-        file_catalogue.seekg((index_now) * sizeof(IndexBase<T>) + sizeof(int), ios::beg);
+        file_catalogue.seekg((index_now) * sizeof(IndexBase<T>) + sizeof(int), std::ios::beg);
         file_catalogue.write(reinterpret_cast<char *>(&indexbase), sizeof(IndexBase<T>));
 
     }
 
-    vector<int> FindValue(T &database_) {
+    std::vector<int> FindValue(T &database_) {
         database = database_;
-        file_catalogue.seekg(0, ios::beg);
-        vector<int> value_;
+        file_catalogue.seekg(0, std::ios::beg);
+        std::vector<int> value_;
         if (!file_catalogue) {
             return value_;
         }
@@ -258,19 +255,19 @@ public:
             indexbase.next = 1;//enter loop
             bool flag = false;
             while (indexbase.next != 0) {
-                file_catalogue.seekg(sizeof(int) + index_now * sizeof(IndexBase<T>), ios::beg);
+                file_catalogue.seekg(sizeof(int) + index_now * sizeof(IndexBase<T>), std::ios::beg);
                 file_catalogue.read(reinterpret_cast<char *>(&indexbase), sizeof(IndexBase<T>));
-                if (string(indexbase.node[0].index) <= string(database_.index) &&
-                    string(database_.index) <= string(indexbase.node[indexbase.size - 1].index)) {
+                if (std::string(indexbase.node[0].index) <= std::string(database_.index) &&
+                    std::string(database_.index) <= std::string(indexbase.node[indexbase.size - 1].index)) {
                     long long n;
-                    n = (lower_bound(indexbase.node, indexbase.node + indexbase.size, database, compare) -
+                    n = (std::lower_bound(indexbase.node, indexbase.node + indexbase.size, database, compare) -
                          indexbase.node);
                     for (int i = n; i < indexbase.size; i++) {
-                        if (string(indexbase.node[i].index) != string(database_.index))break;
+                        if (std::string(indexbase.node[i].index) != std::string(database_.index))break;
                         flag = true;
                         value_.push_back(indexbase.node[i].value);
                     }
-                    if (string(indexbase.node[indexbase.size - 1].index) != database_.index)break;
+                    if (std::string(indexbase.node[indexbase.size - 1].index) != database_.index)break;
                 }
                 index_now = indexbase.next;
             }
@@ -282,7 +279,7 @@ public:
     }
 
     void DeleteValue(T &database_) {
-        file_catalogue.seekg(0, ios::beg);
+        file_catalogue.seekg(0, std::ios::beg);
         if (!file_catalogue) {
             return;
         }
@@ -295,25 +292,25 @@ public:
         indexbase.next = 1;//enter loop
         int index_now = 0;
         while (indexbase.next != 0) {
-            file_catalogue.seekg(sizeof(int) + index_now * sizeof(IndexBase<T>), ios::beg);
+            file_catalogue.seekg(sizeof(int) + index_now * sizeof(IndexBase<T>), std::ios::beg);
             file_catalogue.read(reinterpret_cast<char *>(&indexbase), sizeof(IndexBase<T>));
             if (indexbase.size == 0) {
                 index_now = indexbase.next;
                 continue;
             }
-            if (string(database_.index) < string(indexbase.node[0].index))return;
+            if (std::string(database_.index) < std::string(indexbase.node[0].index))return;
             if (indexbase.node[0] <= database && database <= indexbase.node[indexbase.size - 1]) {
                 long long n;
-                n = (lower_bound(indexbase.node, indexbase.node + indexbase.size, database, compare) -
+                n = (std::lower_bound(indexbase.node, indexbase.node + indexbase.size, database, compare) -
                      indexbase.node);
-                if (string(indexbase.node[n].index) != string(database_.index) ||
+                if (std::string(indexbase.node[n].index) != std::string(database_.index) ||
                     indexbase.node[n].value != database_.value)
                     return;
                 for (int j = n; j < indexbase.size - 1; j++) {
                     indexbase.node[j] = indexbase.node[j + 1];
                 }
                 indexbase.size--;
-                file_catalogue.seekg(sizeof(int) + index_now * sizeof(IndexBase<T>), ios::beg);
+                file_catalogue.seekg(sizeof(int) + index_now * sizeof(IndexBase<T>), std::ios::beg);
                 file_catalogue.write(reinterpret_cast<char *>(&indexbase), sizeof(IndexBase<T>));
                 return;
             }
@@ -322,7 +319,7 @@ public:
     }
 
     void InitializeFirstOpen() {
-        file_catalogue.open(catalogue_name, ios_base::out);
+        file_catalogue.open(catalogue_name, std::ios_base::out);
         int rear = 0;
         file_catalogue.write(reinterpret_cast<char *>(&rear), sizeof(int));
         file_catalogue.close();
@@ -332,7 +329,7 @@ public:
     void InitializeNoneBlock(int &catalogue_rear) {
         indexbase.next = 0;
         indexbase.size = 1;
-        file_catalogue.seekg(0, ios::beg);
+        file_catalogue.seekg(0, std::ios::beg);
         catalogue_rear++;
         indexbase.node[0] = database;
         file_catalogue.write(reinterpret_cast<char *>(&catalogue_rear), sizeof(int));
@@ -348,15 +345,15 @@ public:
         }
         new_index.size = MAXSIZE / 2;
         indexbase.size = MAXSIZE / 2;
-        file_catalogue.seekg((catalogue_rear) * sizeof(IndexBase<T>) + sizeof(int), ios::beg);
+        file_catalogue.seekg((catalogue_rear) * sizeof(IndexBase<T>) + sizeof(int), std::ios::beg);
         file_catalogue.write(reinterpret_cast<char *>(&new_index), sizeof(IndexBase<T>));
         catalogue_rear += 1;
-        file_catalogue.seekg(0, ios::beg);
+        file_catalogue.seekg(0, std::ios::beg);
         file_catalogue.write(reinterpret_cast<char *>(&catalogue_rear), sizeof(int));
     }
 
     void printindexbase() {
-        file_catalogue.seekg(0, ios::beg);
+        file_catalogue.seekg(0, std::ios::beg);
         if (!file_catalogue)return;
         int n;
         file_catalogue.read(reinterpret_cast<char *>(&n), sizeof(int));
@@ -366,10 +363,10 @@ public:
             file_catalogue.read(reinterpret_cast<char *>(&indexbase), sizeof(IndexBase<T>));
             for (int i = 0; i < indexbase.size; i++) {
                 location = indexbase.node[i].value;
-                cout << allBook.findInf(location);
+                std::cout << allBook.findInf(location);
             }
             if (indexbase.next == 0)break;
-            file_catalogue.seekg(sizeof(int) + indexbase.next * sizeof(IndexBase<T>), ios::beg);
+            file_catalogue.seekg(sizeof(int) + indexbase.next * sizeof(IndexBase<T>), std::ios::beg);
         }
     }
 

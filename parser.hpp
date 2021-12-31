@@ -15,10 +15,10 @@ void addStuffCmd(std::string &commandline) {
     Operat operat(commandline);
     StuffDatabase stuffDatabase;
     int location;
-    location=stuffDatabase.InsertInf(operat);
+    location = stuffDatabase.InsertInf(operat);
     StuffIndex stuffIndex;
-    strcpy(stuffIndex.index,onlineusers[onlineusers.size()-1].userInf.index);
-    stuffIndex.value=location;
+    strcpy(stuffIndex.index, onlineusers[onlineusers.size() - 1].userInf.index);
+    stuffIndex.value = location;
     Ull<StuffIndex> ull("StuffCalalogue");
     ull.InsertValue(stuffIndex);
 }
@@ -30,7 +30,7 @@ std::vector<std::string> parser(std::string commandLine) {
     for (int i = 0; i < max_; i++) {
         if (commandLine[i] == ' ') {
             while (i + 1 < max_ && commandLine[i + 1] == ' ')i++;
-            if(word!="")words.push_back(word);
+            if (word != "")words.push_back(word);
             word = "";
             continue;
         }
@@ -81,7 +81,8 @@ Command *getSigned(std::string &commandline) {//读取登录栈
     }
     if (usernow.userInf.value.Priority == 7) {
         p = new Shopkeeper;
-        addStuffCmd(commandline);}
+        addStuffCmd(commandline);
+    }
     return p;
 }
 

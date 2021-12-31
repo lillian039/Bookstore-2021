@@ -155,26 +155,26 @@ public:
         stufffile.close();
     }
 
-    vector<string> findAllMyStuffs(){
-            vector<string>stuffs;
-            stufffile.seekg(0);
-            stufffile.read(reinterpret_cast<char *>(&n), sizeof(int));
-            for(int i=0;i<n;i++){
-                stufffile.read(reinterpret_cast<char *>(&StuffName), sizeof(char)*31);
-                stuffs.push_back(string(StuffName));
-            }
-            return stuffs;
+    vector<string> findAllMyStuffs() {
+        vector<string> stuffs;
+        stufffile.seekg(0);
+        stufffile.read(reinterpret_cast<char *>(&n), sizeof(int));
+        for (int i = 0; i < n; i++) {
+            stufffile.read(reinterpret_cast<char *>(&StuffName), sizeof(char) * 31);
+            stuffs.push_back(string(StuffName));
+        }
+        return stuffs;
     }
 
-    void InsertInf(string & name) {
-        strcpy(StuffName,name.c_str());
+    void InsertInf(string &name) {
+        strcpy(StuffName, name.c_str());
         stufffile.seekg(0);
         stufffile.read(reinterpret_cast<char *>(&n), sizeof(int));
         n += 1;
         stufffile.seekg(0);
         stufffile.write(reinterpret_cast<char *>(&n), sizeof(int));
-        stufffile.seekg((n - 1) * sizeof(char)*31 + sizeof(int));
-        stufffile.write(reinterpret_cast<char *>(&StuffName), sizeof(char)*31);
+        stufffile.seekg((n - 1) * sizeof(char) * 31 + sizeof(int));
+        stufffile.write(reinterpret_cast<char *>(&StuffName), sizeof(char) * 31);
     }
 };
 

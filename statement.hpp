@@ -54,21 +54,21 @@ public:
     virtual void Report(std::vector<std::string> &) { throw MyError(); }
 
     //$创建账户useradd [User-ID] [Password] [Priority] [User-Name]
-    virtual void Useradd(vector<std::string> &) { throw MyError(); }
+    virtual void Useradd(std::vector<std::string> &) { throw MyError(); }
 
     //删除账户delete [User-ID]
-    virtual void Delete(vector<std::string> &) { throw MyError(); }
+    virtual void Delete(std::vector<std::string> &) { throw MyError(); }
 
-    virtual void showFinance(vector<std::string> &) { throw MyError(); }
+    virtual void showFinance(std::vector<std::string> &) { throw MyError(); }
 
     //*生成财务记录报告report finance
-    virtual void reportFinance(vector<std::string> &) { throw MyError(); }
+    virtual void reportFinance(std::vector<std::string> &) { throw MyError(); }
 
     //*生成全体员工工作情况报告report employee
-    virtual void reportEmployee(vector<std::string> &) { throw MyError(); }
+    virtual void reportEmployee(std::vector<std::string> &) { throw MyError(); }
 
     /*对于该函数的实现有文件输出格式要求，详见四、3中关于文件的说明*/
-    virtual void Log(vector<std::string> &) { throw MyError(); }
+    virtual void Log(std::vector<std::string> &) { throw MyError(); }
 
 
 };
@@ -170,7 +170,7 @@ public:
         BookInfoIndex bookInfoIndex;
         Ull<BookInfoIndex> ull;
         AllBook books;
-        vector<int> index;
+        std::vector<int> index;
         if (words[1] == "-ISBN") {
             if (words[2].size() > 20)throw MyError();
             bookInfIsbn.Initialize(words[2], 0);
@@ -226,7 +226,7 @@ public:
         BookInfISBN bookInfIsbn;
         bookInfIsbn.Initialize(words[1], 0);
         Ull<BookInfISBN> ull("ISBNCatalogue");
-        vector<int> index;
+        std::vector<int> index;
         index = ull.FindValue(bookInfIsbn);
         if (index.size() == 0)throw MyError();
         BookInf book;
@@ -312,7 +312,7 @@ public:
         bookInfIsbn.Initialize(words[1], 0);
         Ull<BookInfISBN> ull("ISBNCatalogue");
         std::string ISBN = words[1];
-        vector<int> index;
+        std::vector<int> index;
         index = ull.FindValue(bookInfIsbn);
         AllBook allBook;
         LogStack logStack;
@@ -472,7 +472,7 @@ public:
     //&注销账户logout
     //$修改密码passwd [User-ID] ([Old-Password])? [New-Password]
     //priority=7 可省略old-password
-    void Passwd(vector<std::string> &words) override {
+    void Passwd(std::vector<std::string> &words) override {
         if (words.size() != 3 && words.size() != 4)throw MyError();
         std::string newpasswd;
         if (words.size() == 4)newpasswd = words[3];
@@ -489,7 +489,7 @@ public:
 
 
     //删除账户delete [User-ID]
-    void Delete(vector<std::string> &words) override {
+    void Delete(std::vector<std::string> &words) override {
         if (words.size() != 2)throw MyError();
         if (words[1].size() > 30)throw MyError();
         for (int i = 0; i < onlineusers.size(); i++) {
@@ -507,7 +507,7 @@ public:
 
     //*&生成员工操作记录report myself
     //财务记录查询show finance ([Time])?
-    void showFinance(vector<std::string> &words) override {
+    void showFinance(std::vector<std::string> &words) override {
         int time;
         double *finance;
         double sum_plus = 0;
@@ -535,7 +535,7 @@ public:
     }
 
     //*生成财务记录报告report finance
-    void reportFinance(vector<std::string> &words) override {
+    void reportFinance(std::vector<std::string> &words) override {
         if (words.size() != 2)throw MyError();
         int time;
         double *finance;
@@ -558,7 +558,7 @@ public:
     }
 
     //*生成全体员工工作情况报告report employee
-    void reportEmployee(vector<std::string> &words) override {
+    void reportEmployee(std::vector<std::string> &words) override {
         if (words.size() != 2)throw MyError();
         std::vector<std::string> stuffs;
         MyDearStuffs myDearStuffs;
@@ -577,7 +577,7 @@ public:
     }
     //*生成日志log
     /*对于该函数的实现有文件输出格式要求，详见四、3中关于文件的说明*/
-    void Log(vector<std::string> &words) override {
+    void Log(std::vector<std::string> &words) override {
         if (words.size() != 1)throw MyError();
         std::vector<std::string> word;
         word.push_back("report");
@@ -589,7 +589,7 @@ public:
         reportFinance(word);
         std::cout << "\nHere is my employee's report:\n";
         reportEmployee(word);
-        std::cout<<"THE END\n\n";
+        std::cout << "THE END\n\n";
     }
 
 
