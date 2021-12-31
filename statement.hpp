@@ -235,7 +235,7 @@ public:
         int quantity = atoi(words[2].c_str());
         if (book.quantity < quantity)throw MyError();
         book.quantity -= quantity;
-        std::cout << fixed<<setprecision(2)<<(book.price) * quantity <<'\n';
+        std::cout << fixed << setprecision(2) << (book.price) * quantity << '\n';
         books.CoverInf(book, index[0]);
         //财务文件读写
         double deal = book.price * quantity;
@@ -427,10 +427,22 @@ public:
 
 //*生成员工操作记录report myself
     void Report(std::vector<std::string> &words) override {
-        if (words.size() > 2 || words[1] != "myself")throw MyError();
-        std::cout << "I haven't complete report\n";
-//todo 重用ull与database（1024）
-//todo 员工工作记录文件读写
+        if (words.size() != 2 || words[1] != "myself")throw MyError();
+        std::cout << "My name is "<<onlineusers[onlineusers.size()-1].userInf.index<<" and here is my self report: \n";
+        Operat operats;
+        std::vector<int> locations;
+        StuffDatabase stuffDatabase;
+        Ull<StuffIndex> ull("StuffCalalogue");
+        StuffIndex stuffIndex;
+        strcpy(stuffIndex.index,onlineusers[onlineusers.size()-1].userInf.index);
+        stuffIndex.value=0;
+        locations=ull.FindValue(stuffIndex);
+        if(locations.size()==0) { std::cout << "Oh no boss I have been touching fish for a whole day quq\n";return; }
+        for(int i=0;i<locations.size();i++){
+            operats=stuffDatabase.findInf(locations[i]);
+            std::cout<<'\t'<<std::string(operats.operate)<<'\n';
+        }
+        std::cout<<"Hey boss I have been working hard, please raise my salary quq\n";
     }
 
 
@@ -467,7 +479,6 @@ public:
         }
         AccountInf accountInf("accountfile");
         accountInf.DeleteValue(words[1]);
-        //todo 文件内容删除
     }
 
     //&检索图书show (-ISBN=[ISBN] | -name="[Book-Name]" | -author="[Author]" | -keyword="[Keyword]")?
@@ -507,17 +518,35 @@ public:
 
     //*生成财务记录报告report finance
     void reportFinance(vector<std::string> &words) override {
-        if (words.size() > 2)throw MyError();
+        if (words.size() != 2)throw MyError();
+        int time;
+        double *finance;
+        FinanceRecord financeRecord;
+        time = financeRecord.totalTime();
+        finance = financeRecord.totalFinance(time);
+        std::cout << "There are my income and outcome:\n";
+        int k = 0;
+        for (int i = 0; i < time; i++) {
+            k++;
+            if (finance[i] < 0)std::cout << "- " << fixed << setprecision(2) << fabs(finance[i]) << '\t';
+            else if (finance[i] > 0)std::cout << "+ " << fixed << setprecision(2) << finance[i] << '\t';
+            if (k == 10) {
+                std::cout << '\n';
+                k = 0;
+            }
+        }
+        std::cout << "\n";
+        delete[]finance;
     }
 
     //*生成全体员工工作情况报告report employee
     void reportEmployee(vector<std::string> &words) override {
-        if (words.size() > 2)throw MyError();
+        if (words.size() != 2)throw MyError();
     }
     //*生成日志log
     /*对于该函数的实现有文件输出格式要求，详见四、3中关于文件的说明*/
     void Log(vector<std::string> &words) override {
-        if (words.size() > 2)throw MyError();
+        if (words.size() != 2)throw MyError();
     }
 
 

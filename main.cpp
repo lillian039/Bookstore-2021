@@ -2,16 +2,15 @@
 #include "parser.hpp"
 
 int main() {
-/*   freopen("9.in","r",stdin);
+  /* freopen("testcase5.txt","r",stdin);
     freopen("me.out","w",stdout);*/
     string commandLine;
     Command *user;
     while(true){
        try{
            getline(cin,commandLine);
-   /*        cout<<commandLine<<endl;*/
            if (cin.eof())std::exit(0);
-           user=getSigned();
+           user=getSigned(commandLine);
            parseCommand(commandLine,user);
            delete user;
        }
@@ -19,5 +18,4 @@ int main() {
            std::cout<<ex.what();
        }
     }
-    return 0;
 }

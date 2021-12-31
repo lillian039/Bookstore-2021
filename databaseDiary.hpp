@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <unistd.h>
 #include "error.hpp"
+#include "databaseBook.hpp"
 
 //记录财务信息
 class FinanceRecord {
@@ -58,19 +59,80 @@ public:
     }
 };
 
-/*class StuffOperat{
+struct StuffIndex {
+    char index[31];
+    int value;
+    StuffIndex()=default;
+
+    friend bool operator<(const StuffIndex &lhs, const StuffIndex &rhs) {
+        return string(lhs.index) < string(rhs.index);
+    }
+
+    friend bool operator>(const StuffIndex &lhs, const StuffIndex &rhs) {
+        return string(lhs.index) > string(rhs.index);
+    }
+
+    friend bool operator>=(const StuffIndex &lhs, const StuffIndex &rhs) {
+        return string(lhs.index) >= string(rhs.index);
+    }
+
+    friend bool operator<=(const StuffIndex &lhs, const StuffIndex &rhs) {
+        return string(lhs.index) <= string(rhs.index);
+    }
 
 };
 
-struct StuffIndex{
-    char stuffname[31];
-    int index;
-};
 
 struct Operat{
-    char operate[1025];//单条指令长达1025
+    char operate[1026];//单条指令长达1025
+    
+    Operat(std::string &cmd){
+        strcpy(operate,cmd.c_str());
+    }
+    
+    Operat()=default;
 };
-class StuffDatabase{
 
-};*/
+
+
+class StuffDatabase {
+private:
+    Operat operat;
+    string filename;
+    fstream stufffile;
+    int n;
+public:
+    StuffDatabase() {
+        stufffile.open("StuffReport");
+        if (!stufffile) {
+            stufffile.open("StuffReport", ios_base::out);
+            n = 0;
+            stufffile.close();
+            stufffile.open("StuffReport");
+            stufffile.write(reinterpret_cast<char *>(&n), sizeof(n));
+        }
+    }
+
+    ~StuffDatabase() {
+        stufffile.close();
+    }
+
+    Operat findInf(int &num) {
+        stufffile.seekg((num - 1) * sizeof(Operat) + sizeof(int));
+        stufffile.read(reinterpret_cast<char *>(&operat), sizeof(Operat));
+        return operat;
+    }
+
+    int InsertInf(Operat &operat) {
+        stufffile.seekg(0);
+        stufffile.read(reinterpret_cast<char *>(&n), sizeof(int));
+        n += 1;
+        stufffile.seekg(0);
+        stufffile.write(reinterpret_cast<char *>(&n), sizeof(int));
+        stufffile.seekg((n - 1) * sizeof(Operat) + sizeof(int));
+        stufffile.write(reinterpret_cast<char *>(&operat), sizeof(Operat));
+        return n;
+    }
+
+};
 #endif //BOOKSTORE_DATABASEDIARY_HPP

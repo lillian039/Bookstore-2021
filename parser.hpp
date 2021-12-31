@@ -9,21 +9,34 @@
 #include "statement.hpp"
 
 //解构输入的命令行
+
+
+void addStuffCmd(std::string &commandline) {
+    Operat operat(commandline);
+    StuffDatabase stuffDatabase;
+    int location;
+    location=stuffDatabase.InsertInf(operat);
+    StuffIndex stuffIndex;
+    strcpy(stuffIndex.index,onlineusers[onlineusers.size()-1].userInf.index);
+    stuffIndex.value=location;
+    Ull<StuffIndex> ull("StuffCalalogue");
+    ull.InsertValue(stuffIndex);
+}
+
 std::vector<std::string> parser(std::string commandLine) {
     std::vector<std::string> words;
     std::string word = "";
     int max_ = commandLine.size();
     for (int i = 0; i < max_; i++) {
         if (commandLine[i] == ' ') {
-            while(i+1<max_&&commandLine[i+1]==' ')i++;
-            words.push_back(word);
-            word="";
+            while (i + 1 < max_ && commandLine[i + 1] == ' ')i++;
+            if(word!="")words.push_back(word);
+            word = "";
             continue;
         }
         word += commandLine[i];
     }
-    if(commandLine[max_-1]!=' ')words.push_back(word);
-/*    if(words.empty())words.push_back(word);*/
+    if (commandLine[max_ - 1] != ' ')words.push_back(word);
     return words;
 }
 
@@ -53,7 +66,7 @@ void parseCommand(std::string commandLine, Command *cmd) {
 
 }
 
-Command *getSigned() {//读取登录栈
+Command *getSigned(std::string &commandline) {//读取登录栈
     LogStack usernow;
     Command *p;
     if (onlineusers.empty()) {
@@ -62,9 +75,13 @@ Command *getSigned() {//读取登录栈
     }
     usernow = onlineusers.back();
     if (usernow.userInf.value.Priority == 1)p = new Customer;
-    if (usernow.userInf.value.Priority == 3)p = new Staff;
+    if (usernow.userInf.value.Priority == 3) {
+        p = new Staff;
+        addStuffCmd(commandline);
+    }
     if (usernow.userInf.value.Priority == 7)p = new Shopkeeper;
     return p;
 }
+
 
 #endif //BOOKSTORE_PARSER_HPP
