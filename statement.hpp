@@ -117,6 +117,7 @@ class Customer : public Visitor {
 public:
     //注销账户logout
     void Logout(std::vector<std::string> &words) override {
+        if (words.size() != 1)throw MyError();
         if (onlineusers.empty())throw MyError();
         onlineusers.pop_back();
         int n = onlineusers.size();
@@ -159,10 +160,12 @@ public:
         std::string word = "";
         for (int i = 0; i <= search.size(); i++) {
             if (search[i] == '=' || i == search.size()) {
+                if (word == "")throw MyError();
                 words.push_back(word);
                 word = "";
                 continue;
             }
+            if (search[i] == ' ')throw MyError();
             if (search[i] == '"')continue;
             word += search[i];
         }
@@ -508,6 +511,7 @@ public:
     //*&生成员工操作记录report myself
     //财务记录查询show finance ([Time])?
     void showFinance(std::vector<std::string> &words) override {
+        if (words.size() != 3 && words.size() != 2)throw MyError();
         int time;
         double *finance;
         double sum_plus = 0;

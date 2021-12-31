@@ -45,10 +45,10 @@ void parseCommand(std::string commandLine, Command *cmd) {
     words = parser(commandLine);
     if (words[0] == "")return;
     if ((words[0] == "exit" || words[0] == "quit") && words.size() == 1) cmd->exit();
-    else if (words.size() > 1 && words[0] == "show" && words[1] == "finance")cmd->showFinance(words);
-    else if (words.size() > 1 && words[0] == "report" && words[1] == "employee")cmd->reportEmployee(words);
-    else if (words.size() > 1 && words[0] == "report" && words[1] == "finance")cmd->reportFinance(words);
-    else if (words.size() > 1 && words[0] == "report" && words[1] == "myself")cmd->Report(words);
+    else if (words.size() ==2 && words[0] == "show" && words[1] == "finance")cmd->showFinance(words);
+    else if (words.size() ==2 && words[0] == "report" && words[1] == "employee")cmd->reportEmployee(words);
+    else if (words.size() ==2 && words[0] == "report" && words[1] == "finance")cmd->reportFinance(words);
+    else if (words.size() ==2 && words[0] == "report" && words[1] == "myself")cmd->Report(words);
     else if (words[0] == "su") cmd->Login(words);
     else if (words[0] == "logout")cmd->Logout(words);
     else if (words[0] == "register")cmd->Register(words);
