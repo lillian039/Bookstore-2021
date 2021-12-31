@@ -43,6 +43,7 @@ std::vector<std::string> parser(std::string commandLine) {
 void parseCommand(std::string commandLine, Command *cmd) {
     vector<string> words;
     words = parser(commandLine);
+    if(words.empty())return;
     if (words[0] == "")return;
     if ((words[0] == "exit" || words[0] == "quit") && words.size() == 1) cmd->exit();
     else if (words.size() ==2 && words[0] == "show" && words[1] == "finance")cmd->showFinance(words);
