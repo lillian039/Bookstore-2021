@@ -6,33 +6,15 @@
 
 partner：郭一锦 FlowerInSpring
 
-当前版本：1.2
+当前版本：1.3 （原1.2）
 
-注意，该版本为执行者提出的修改意愿，尊重开发者意愿，该版本的最终形式以开发者提供的开发文档为准。
+最新修改：2021.01.12
 
+修改内容：
 
+1.添加了一些声明，使对执行方的要求相对宽松，给执行方更多调整的空间
 
-修改意愿说明：
-
-1.账户系统和图书系统类中的私有变量均封装成结构体
-
-2.删除了blockList.hpp文件，并大面积修改FileData文件
-
-3.parser类重写，将其转变为只实现解析输入命令行，生成执行类的类，将其解析后生成的单词储存到Statement及其派生类中。
-
-4.修改了Statement基类中的共有成员(一个vector型容器)
-
-5.异常类中，重写what函数时，返回类型由string修改为char*（与exception类一致）
-
-6.文件命名大小写略有修改
-
-7.所有给出的代码中完善名字空间std
-
-8.几个无关实现，可以忽略的代码格式的修改，如换行空行问题
-
-3.几个无关实现，可以忽略的小错误
-
-
+2.应执行方建议，修改了Statement类，防止解体。
 
 ### 一、程序功能概述
 
@@ -92,40 +74,45 @@ partner：郭一锦 FlowerInSpring
 
 2.登录栈说明：用一个文件记录登录中的所有账号，新登录的账号放在文件尾，从文件尾读取当前为登录的状态的账号。
 
-使用栈
-
 ### 三、各个类的接口及成员说明
+
+执行方可以根据需要自行添加所需要的类，但不要修改文件数量和命名。
 
 account类：每一个账户均实时存入 account.file 并更新accountBlock.file与accountIndex.file
 
 ```c++
 struct AccountInf {
     int priority;
-    char userId[30];
-    char password[30];
-    char userName[30];
+    char userId[31];
+    char password[31];
+    char userName[31];
+    /*根据需要添加重载函数*/
 };
 
 class Account {
 private:
 
-    AccountInf account;
-
+    static AccountInf accountLog;//只记录最新登陆，进行操作的用户
+    /*其他需要的私有成员变量*/
+    
 public:
 
-    Account() = default;
-    //注册{0}
-    void Register(const char* _user_id, const char* _password, const char* _user_name);
+   Account();
     //登录{0}
-    void su(const char* _user_id, const std::string _password);
-    //修改密码{1}
-    void passwd(const char* old_password,const char* new_password);
+    void su(const std::string &_user_id, const std::string &_password);
     //登出{1}
     void logout();
+    //注册{0}
+    void Register(const std::string &_user_id, const std::string &_password, const std::string &_user_name);
+    //修改密码{1}
+    void passwd(const std::string &_user_id, const std::string &old_password,const std::string &new_password);
     //创建用户{3}
-    void createAccount(const char* _user_id, const char*_password, const int priority, const char*_user_name);
+    void Useradd(const std::string &_user_id, const std::string &_password, const int &priority, const std::string &_user_name);
     //删除用户{7}
-    void deleteAccount(const char* _user_id);
+    void deleteAccount(const std::string &_user_id);
+    
+    /*根据需要添加函数*/
+    
 };
 ```
 
@@ -133,20 +120,24 @@ books类：每一个账户均实时存入 books.file 并更新booksBlock.file与
 
 ```c++
 struct BooksInf {
-    char ISBN[20];
-    char bookName[60];
-    char author[60];
-    char keyword[60];//记录整段keyword
+    char ISBN[21];
+    char bookName[61];
+    char author[61];
+    char keyword[61];//记录整段keyword
     int quantity;
     double price;
     double totalCost = 0;//销售总金额
+     /*根据需要添加重载函数*/
 };
 
 class Books {
 private:
-    BooksInf books;
+    
+    BooksInf bookSelect;
+    /*其他需要的私有成员变量*/
+    
 public:
-    Books() = default;
+    Books();
     //以ISBN字典升序依次输出满足要求的图书信息{1}
     void show(char* cmd);
     //购买指定数量的图书{1}
@@ -158,20 +149,18 @@ public:
     //图书进货
     void import(const char* _ISBN, const int _total_cost);
 
+    /*根据需要添加函数*/
 };
 ```
 
 diary类：用SumIncome.file记录每笔交易额
 
 ```c++
-class SumIncome {
-private:
+struct SumIncome {
     int time;
-    double income;
-public:
-    SumIncome()=default;
-    //记录新一笔交易
-    void newDeal(double _income);
+    double in = 0;
+    double out = 0;
+     /*根据需要添加重载函数*/
 };
 ```
 
@@ -180,22 +169,40 @@ public:
 对日志生成的格式 根据bonus需要自行设计，大致包含每笔操作，操作与金额等等
 
 ```c++
-class OperaRecord {
+class Diary {
 private:
-    char user_id[30];
-    char cmd[1024];
-    int index;//操作记录所在位置
+    FileData<SumIncome> finance;
+    SumIncome latest;//最近一次交易总额
+    int Time;//交易总笔数
+    std::fstream diary;//这是一个直接可读的文件,是所有人操作的记录,格式：权限 ID 操作 \n
 public:
-    OperaRecord() = default;
-    //记录不同员工的单次操作记录
-    void newCmd(char *_cmd);
+    Diary();
+    ~Diary();
+    //将某用户的某次操作记录写入文件
+    void write(int &priority,std::string &name, std::string &content);
+    //收入
+    void buyBook(double cost);
+    //支出
+    void importBook(double total_cost);
+
+    //{3}reportMyself
+    void reportMyself(std::string &index);
+    //{7}财务记录查询
+    void showFinance(int time);
+    //{7}生成财务记录报告
+    void reportFinance();
+    //{7}生成全体员工工作情况报告
+    void reportEmployee();
+    //{7}生成日志
+    void LogRecord();
+
 };
 ```
 
 FileData类：存储每个类的不同类型不同的成员均开一个文件，存储该成员的所有数据
 
 ```c++
-template<class T>//文件数据结构类接口 T可为Books SumIncome Account OperaRecord中任意一个
+template<class T>//文件数据结构类接口 T可为Books SumIncome Account 中任意一个；也可以根据执行者需要修改
 class FileData {
     
 private:
@@ -253,36 +260,47 @@ public:
     Statement parserWord(std::string &cmd);//生成所执行的语法类型
 
 };
+
+//该类比较简单，只包含一个对功能实现有意义的函数，执行方允许不使用类进行包装。
 ```
 
 statement类：执行指令
 
+该类用于包装三个系统，使main函数更加简洁。请小心处理各个文件中类和全局变量/静态变量的关系，防止解体。
+
 ```c++
 class Statement{
-public:Statement();
-   std::vector<std::string> words;//储存每句语法被拆解出的单词
+private:
+    Account accountSystem;
+    Books bookSystem;
+    Diary diarySystem;
+    int wordNum = 0;//vector中非空字符数量
+    std::vector<std::string> words;//储存每句语法被拆解出的单词
+    /*可以根据需要添加私有成员*/
+public:
     Statement();
-    virtual ~Statement();
-    virtual void execute();//每个派生类中均需要单独实现execute函数，功能用当前priority区分
+    ~Statement();
+    void separateCmd(std::string &cmd);
+    /*根据需要自行添加成员函数*/
+    void Quit();
+    void Exit();
+    void Su();
+    void Logout();
+    void Register();
+    void Passwd();
+    void Useradd();
+    void Delete();
+    void Show();
+    void Buy();
+    void Select();
+    void Modify();
+    void Import();
+    void ReportMyself();
+    void ShowFinance();
+    void ReportFinance();
+    void ReportEmployee();
+    void log();
 };
-class Quit:public Statement{};
-class Exit:public Statement{};
-class Su:public Statement{};
-class Logout:public Statement{};
-class Register:public Statement{};
-class Passwd:public Statement{};
-class Useradd:public Statement{};
-class Delete:public Statement{};
-class Show:public Statement{};
-class Buy:public Statement{};
-class Select:public Statement{};
-class Modify:public Statement{};
-class Import:public Statement{};
-class ReportMyself:public Statement{};
-class ShowFinance:public Statement{};
-class ReportFinance:public Statement{};
-class ReportEmployee:public Statement{};
-class log:public Statement{};
 ```
 
 error类：抛出异常
@@ -298,11 +316,20 @@ public:
     explicit BasicException(const std::string _message) : message(_message) {};
     virtual const char* what() const;
 };
+
+/*根据需要添加异常类*/
+/*允许简化异常类使代码更简洁*/
 ```
+
+
 
 ### 四、文件读取说明
 
 #### **（1）所需文件：**
+
+允许执行方为便于实现对文件个数、用途等进行修改，总数不超过20即可。文件请自主命名。
+
+以下描述提供参考。
 
 **■ class account：**
 
