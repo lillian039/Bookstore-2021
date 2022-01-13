@@ -1,0 +1,13 @@
+.idea/
+/*
+!statement.hpp
+!parser.hpp
+!main.hpp
+!LICENSE
+!error.hpp
+!databaseDiary.hpp
+!databaseBook.hpp
+!databaseAccount.hpp
+!CmakeList.txt
+!BookstoreDocument.md
+!.gitignore
